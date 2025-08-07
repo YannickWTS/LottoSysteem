@@ -8,6 +8,7 @@ public class LottoSysteemAliApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(LottoSysteemAliApplication.class, args);
+
     }
 
 }
