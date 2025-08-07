@@ -19,7 +19,7 @@ public class GebruikerRepository {
     public Optional<Gebruiker> findByGebruikersnaam(String gebruikersnaam) {
         var sql = """
                 select id, gebruikersnaam, wachtwoord, rol
-                from gebruikers
+                from gebruiker
                 where gebruikersnaam = ?
                 """;
         return jdbcClient.sql(sql)
@@ -30,7 +30,7 @@ public class GebruikerRepository {
 
     public long updateWachtwoord(long id, String nieuwWachtwoord) {
         var sql = """
-                update gebruikers
+                update gebruiker
                 set wachtwoord = ?
                 where id = ?
                 """;
@@ -41,7 +41,7 @@ public class GebruikerRepository {
 
     public long save(Gebruiker gebruiker) {
         String sql = """
-                INSERT INTO gebruikers (gebruikersnaam, wachtwoord, rol)
+                INSERT INTO gebruiker (gebruikersnaam, wachtwoord, rol)
                 VALUES (?, ?, ?)
                 """;
 
