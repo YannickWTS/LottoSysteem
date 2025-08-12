@@ -1,6 +1,5 @@
 package be.wts.lottosysteem_Ali.controller;
 
-import be.wts.lottosysteem_Ali.model.Bestelling;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -67,5 +66,66 @@ public class BestellingControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json);
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void addBestellingMetNegatiefKlantId() throws Exception {
+        var json = new ClassPathResource("/bestellingMetNegatieveKlantId.json")
+                .getContentAsString(StandardCharsets.UTF_8);
+        var response = mockMvcTester.post()
+                .uri("/bestelling")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void addBestellingMetLeegSpeltype() throws Exception {
+        var json = new ClassPathResource("/bestellingZonderSpeltype.json")
+                .getContentAsString(StandardCharsets.UTF_8);
+        var response = mockMvcTester.post()
+                .uri("/bestelling")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void addBestellingMetOngeldigSpeltypeMislukt() throws Exception {
+    var json = new ClassPathResource("/bestellingMetOngeldigSpeltype.json")
+    .getContentAsString(StandardCharsets.UTF_8);
+
+    var response = mockMvcTester.post()
+            .uri("/bestelling")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(json);
+    assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void addBestellingZonderDatumRegistratieMislukt() throws Exception {
+        var json = new ClassPathResource("/bestellingZonderDatumRegistratie.json")
+                .getContentAsString(StandardCharsets.UTF_8);
+        var response = mockMvcTester.post()
+                .uri("/bestelling")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+        assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void addBestellingMetBetaaldFalseVoegtCorrectToe() throws Exception {
+        var json = new ClassPathResource("/bestellingNietBetaald.json")
+                .getContentAsString(StandardCharsets.UTF_8);
+        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
+        var response = mockMvcTester.post()
+                .uri("/bestelling")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json);
+        assertThat(response).hasStatusOk()
+                .bodyJson()
+                .extractingPath("$")
+                .isInstanceOf(Number.class);
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE)).isEqualTo(aantalVoor + 1);
     }
 }
