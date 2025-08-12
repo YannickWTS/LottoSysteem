@@ -1,7 +1,5 @@
 package be.wts.lottosysteem_Ali.model;
 
-import jakarta.validation.constraints.Email;
-
 public class Klant {
     private long id;
     private String naam;
