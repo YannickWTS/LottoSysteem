@@ -12,6 +12,7 @@ import java.util.Optional;
 @Repository
 public class KlantRepository {
     private final JdbcClient jdbcClient;
+
     public KlantRepository(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
     }
@@ -37,6 +38,19 @@ public class KlantRepository {
                 .param(id)
                 .query(Klant.class)
                 .optional();
+    }
+
+    public List<Klant> findByNaamBegintMet(String naamDeel) {
+        var sql = """
+                select id, naam, email
+                from klant
+                where lower(naam) like ?
+                order by naam
+                """;
+        return jdbcClient.sql(sql)
+                .param(naamDeel.toLowerCase() + "%")
+                .query(Klant.class)
+                .list();
     }
 
     public long save(Klant klant) {
