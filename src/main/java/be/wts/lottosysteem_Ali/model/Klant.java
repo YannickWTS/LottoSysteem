@@ -1,8 +1,14 @@
 package be.wts.lottosysteem_Ali.model;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 public class Klant {
     private long id;
+    @NotBlank(message = "Naam is verplicht!")
     private String naam;
+    @NotBlank(message = "Email is verplicht!")
+    @Email(message = "ongeldig e-mailadres.")
     private String email;
 
     public Klant() {}
