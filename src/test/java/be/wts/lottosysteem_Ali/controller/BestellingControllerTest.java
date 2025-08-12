@@ -42,7 +42,7 @@ public class BestellingControllerTest {
     @Transactional
     @Test
     void addBestellingVoegtBestellingToe() throws Exception {
-        var json = new ClassPathResource("/correcteBestelling.json")
+        var json = new ClassPathResource("/bestellingTestData/correcteBestelling.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
         var response = mockMvcTester.post()
@@ -59,7 +59,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingZonderKlantIdMislukt() throws Exception {
-        var json = new ClassPathResource("/bestellingZonderKlant.json")
+        var json = new ClassPathResource("/bestellingTestData/bestellingZonderKlant.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var response = mockMvcTester.post()
                 .uri("/bestelling")
@@ -70,7 +70,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingMetNegatiefKlantId() throws Exception {
-        var json = new ClassPathResource("/bestellingMetNegatieveKlantId.json")
+        var json = new ClassPathResource("/bestellingTestData/bestellingMetNegatieveKlantId.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var response = mockMvcTester.post()
                 .uri("/bestelling")
@@ -81,7 +81,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingMetLeegSpeltype() throws Exception {
-        var json = new ClassPathResource("/bestellingZonderSpeltype.json")
+        var json = new ClassPathResource("/bestellingTestData/bestellingZonderSpeltype.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var response = mockMvcTester.post()
                 .uri("/bestelling")
@@ -92,7 +92,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingMetOngeldigSpeltypeMislukt() throws Exception {
-    var json = new ClassPathResource("/bestellingMetOngeldigSpeltype.json")
+    var json = new ClassPathResource("/bestellingTestData/bestellingMetOngeldigSpeltype.json")
     .getContentAsString(StandardCharsets.UTF_8);
 
     var response = mockMvcTester.post()
@@ -104,7 +104,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingZonderDatumRegistratieMislukt() throws Exception {
-        var json = new ClassPathResource("/bestellingZonderDatumRegistratie.json")
+        var json = new ClassPathResource("/bestellingTestData/bestellingZonderDatumRegistratie.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var response = mockMvcTester.post()
                 .uri("/bestelling")
@@ -115,7 +115,7 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingMetBetaaldFalseVoegtCorrectToe() throws Exception {
-        var json = new ClassPathResource("/bestellingNietBetaald.json")
+        var json = new ClassPathResource("/bestellingTestData/bestellingNietBetaald.json")
                 .getContentAsString(StandardCharsets.UTF_8);
         var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
         var response = mockMvcTester.post()
