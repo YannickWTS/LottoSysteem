@@ -4,15 +4,15 @@ import java.time.LocalDate;
 
 public class Bestelling {
     private final long id;
-    private final long klantId;
+    private final Klant klant;
     private final String spelType;
     private final String maand;
     private final LocalDate datumRegistratie;
     private final boolean betaald;
 
-    public Bestelling(long id, long klantId, String spelType, String maand, LocalDate datumRegistratie, boolean betaald) {
+    public Bestelling(long id, Klant klant, String spelType, String maand, LocalDate datumRegistratie, boolean betaald) {
         this.id = id;
-        this.klantId = klantId;
+        this.klant = klant;
         this.spelType = spelType;
         this.maand = maand;
         this.datumRegistratie = datumRegistratie;
@@ -23,8 +23,8 @@ public class Bestelling {
         return id;
     }
 
-    public long getKlantId() {
-        return klantId;
+    public Klant getKlant() {
+        return klant;
     }
 
     public String getSpelType() {

@@ -35,9 +35,9 @@ public class BestellingService {
             throw new IllegalArgumentException("Ongeldig speltype!");
         }
 
-        // Validatie: klantId moet positief zijn
-        if (bestelling.getKlantId() <= 0) {
-            throw new IllegalArgumentException("Klant-ID moet groter dan 0 zijn!");
+        // Validatie: klant mag niet null zijn.
+        if (bestelling.getKlant() == null || bestelling.getKlant().getId() <= 0) {
+            throw new IllegalArgumentException("Klant verplicht!");
         }
 
         // Validatie: datumRegistratie mag niet null zijn

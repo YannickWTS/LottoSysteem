@@ -1,5 +1,7 @@
 {
-  "klantId": -4,
+  "klant": {
+    "id": -4
+  },
   "spelType": "Lotto",
   "maand": "juli",
   "datumRegistratie": "2025-07-04",

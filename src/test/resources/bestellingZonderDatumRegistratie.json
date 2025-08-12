@@ -1,5 +1,7 @@
 {
-  "klantId": 1,
+  "klant": {
+    "id": 1
+  },
   "spelType": "EuroMillions",
   "maand": "juli",
   "datumRegistratie": null,

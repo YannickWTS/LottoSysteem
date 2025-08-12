@@ -1,6 +1,7 @@
 package be.wts.lottosysteem_Ali.repository;
 
 import be.wts.lottosysteem_Ali.model.Bestelling;
+import be.wts.lottosysteem_Ali.model.Klant;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -22,7 +23,14 @@ public class BestellingRepository {
                 order by id
                 """;
         return jdbcClient.sql(sql)
-                .query(Bestelling.class)
+                .query((rs, rowNum) -> new Bestelling(
+                        rs.getLong("id"),
+                        new Klant(rs.getLong("klant_id")),
+                        rs.getString("speltype"),
+                        rs.getString("maand"),
+                        rs.getDate("datum_registratie").toLocalDate(),
+                        rs.getBoolean("betaald")
+                ))
                 .list();
     }
 
@@ -36,7 +44,7 @@ public class BestellingRepository {
 
         jdbcClient.sql(sql)
                 .params(
-                        bestelling.getKlantId(),
+                        bestelling.getKlant().getId(),
                         bestelling.getSpelType(),
                         bestelling.getMaand(),
                         bestelling.getDatumRegistratie(),
