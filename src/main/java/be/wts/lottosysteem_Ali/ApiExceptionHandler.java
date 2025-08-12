@@ -1,4 +1,4 @@
-package be.wts.lottosysteem_Ali.controller;
+package be.wts.lottosysteem_Ali;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
