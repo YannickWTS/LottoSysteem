@@ -34,7 +34,7 @@ public class SecurityConfig {
                         .requestMatchers("/bestellingen/**").authenticated()
 
                         //de rest ook achter login
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 .httpBasic(Customizer.withDefaults());
         return http.build();
