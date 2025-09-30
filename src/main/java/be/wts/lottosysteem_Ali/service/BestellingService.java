@@ -47,4 +47,8 @@ public class BestellingService {
 
         return bestellingRepository.save(bestelling);
     }
+
+    public void deleteBestelling(long id) {
+        bestellingRepository.delete(id);
+    }
 }

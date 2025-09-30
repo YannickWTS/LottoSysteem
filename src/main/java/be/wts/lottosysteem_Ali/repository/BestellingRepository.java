@@ -54,4 +54,15 @@ public class BestellingRepository {
 
         return keyHolder.getKey().longValue();
     }
+
+    public void delete(long id){
+        var sql = """
+                delete
+                from bestelling
+                where id = ?
+                """;
+        jdbcClient.sql(sql)
+                .param(id)
+                .update();
+    }
 }

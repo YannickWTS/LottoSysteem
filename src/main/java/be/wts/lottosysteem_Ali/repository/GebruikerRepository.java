@@ -57,4 +57,15 @@ public class GebruikerRepository {
 
         return keyHolder.getKey().longValue();
     }
+
+    public void delete(long id) {
+        var sql = """
+                delete
+                from gebruiker
+                where id = ?
+                """;
+        jdbcClient.sql(sql)
+                .param(id)
+                .update();
+    }
 }

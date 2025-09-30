@@ -22,24 +22,32 @@ public class GebruikerService {
    }
 
    public long create(Gebruiker gebruiker) {
-        String gehashedWachtwoord = passwordEncoder.encode(gebruiker.getWachtwoord());
+        String Rol = (gebruiker.getRol() == null || gebruiker.getRol().isBlank())
+                ? "USER"
+                : gebruiker.getRol().toUpperCase();
+
+        String hashedWachtwoord = passwordEncoder.encode(gebruiker.getWachtwoord());
         var gebruikerMetHash = new Gebruiker(
                 gebruiker.getId(),
                 gebruiker.getGebruikersnaam(),
-                gehashedWachtwoord,
-                gebruiker.getRol()
+                hashedWachtwoord,
+                Rol
         );
         return gebruikerRepository.save(gebruikerMetHash);
    }
 
    public long updateWachtwoord(long id, String nieuwWachtwoord) {
-        String gehashedWachtwoord = passwordEncoder.encode(nieuwWachtwoord);
-        return gebruikerRepository.updateWachtwoord(id, gehashedWachtwoord);
+        String hashedWachtwoord = passwordEncoder.encode(nieuwWachtwoord);
+        return gebruikerRepository.updateWachtwoord(id, hashedWachtwoord);
    }
 
-   public boolean isWachtwoordCorrect(String gebruikersnaam, String ingevoerdwachtwoord) {
+   public boolean isWachtwoordCorrect(String gebruikersnaam, String ingevoerdWachtwoord) {
         Optional<Gebruiker> gebruikerOpt = gebruikerRepository.findByGebruikersnaam(gebruikersnaam);
         return gebruikerOpt.isPresent() &&
-                passwordEncoder.matches(ingevoerdwachtwoord, gebruikerOpt.get().getWachtwoord());
+                passwordEncoder.matches(ingevoerdWachtwoord, gebruikerOpt.get().getWachtwoord());
+   }
+
+   public void delete(long id) {
+        gebruikerRepository.delete(id);
    }
 }
