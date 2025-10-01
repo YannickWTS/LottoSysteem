@@ -10,7 +10,9 @@ import be.wts.lottosysteem_Ali.service.GebruikerService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -49,7 +51,19 @@ public class GebruikerController {
     }
 
     @PutMapping("{id}/wachtwoord")
-    public void updateWachtwoord(@PathVariable long id, @RequestBody NieuwWachtwoord nieuwWachtwoord) {
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateWachtwoord(@PathVariable long id, @RequestBody NieuwWachtwoord nieuwWachtwoord, Authentication auth) {
+        var ingelogdeGebruikersnaam = auth.getName();
+        var gebruiker = gebruikerService.findByGebruikersnaam(ingelogdeGebruikersnaam)
+                .orElseThrow(GebruikerNietGevondenException::new);
+
+        boolean isEigenAccount = gebruiker.getId() == id;
+        boolean isAdmin = gebruiker.getRol().equals("ADMIN");
+
+        if (!isEigenAccount && !isAdmin) {
+            throw new AccessDeniedException("Geen toegang om dit wachtwoord te wijzigen");
+        }
+
         long rijenupdate = gebruikerService.updateWachtwoord(id, nieuwWachtwoord.wachtwoord());
         if (rijenupdate == 0) {
             throw new WachtwoordUpdateException(id);
