@@ -1,5 +1,6 @@
 package be.wts.lottosysteem_Ali.controller;
 
+import be.wts.lottosysteem_Ali.dto.NieuwWachtwoord;
 import be.wts.lottosysteem_Ali.dto.NieuweGebruiker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -7,16 +8,17 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.*;
 
 @SpringBootTest
 @AutoConfigureMockMvc //filter aan laten voor échte security
+@Sql("/testdataGebruikers/gebruikers.sql")
 public class GebruikerControllerSecurityTest {
     private final MockMvcTester mvc;
     private final ObjectMapper om;
@@ -48,7 +50,7 @@ public class GebruikerControllerSecurityTest {
                 .contentType("application/json")
                 .content(om.writeValueAsString(req));
 
-        assertThat(resp).hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(resp).hasStatus(FORBIDDEN);
     }
 
     @Test
@@ -77,14 +79,14 @@ public class GebruikerControllerSecurityTest {
     @WithMockUser(username = "jan", roles = {"USER"})
     void delete_geeft403_alsUserZonderAdminRol() {
         var resp = mvc.delete().uri("/gebruiker/{id}", 99999L);
-        assertThat(resp).hasStatus(HttpStatus.FORBIDDEN);
+        assertThat(resp).hasStatus(FORBIDDEN);
     }
 
     @Test
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     void delete_geeft204_alsAdminOokBijOnbestaandId() {
         // Controller geeft 204 en service/repo handelt non-existing best-effort af (idempotent delete is ok)
-        var resp = mvc.delete().uri("/gebruiker/6", 99999L);
+        var resp = mvc.delete().uri("/gebruiker/{id}", 99999L);
         assertThat(resp).hasStatus(NO_CONTENT);
     }
 
@@ -107,5 +109,16 @@ public class GebruikerControllerSecurityTest {
 
         var delete = mvc.delete().uri("/gebruiker/{id}", id).exchange();
         assertThat(delete).hasStatus(NO_CONTENT);
+    }
+
+    @Test
+    @WithMockUser(username = "jan", roles = {"USER"})
+    void updateWachtwoordGeeft403AlsUserZonderAdminRol() throws Exception {
+        var req = new NieuwWachtwoord("nieuwWachtwoord123");
+        var resp = mvc.put()
+                .uri("/gebruiker/{id}/wachtwoord", 1L) // jan (id 3) wil admin (id 1) aanpassen
+                .contentType("application/json")
+                .content(om.writeValueAsString(req));
+        assertThat(resp).hasStatus(FORBIDDEN);
     }
 }

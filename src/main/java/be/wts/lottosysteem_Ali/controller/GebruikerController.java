@@ -52,13 +52,15 @@ public class GebruikerController {
 
     @PutMapping("{id}/wachtwoord")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateWachtwoord(@PathVariable long id, @RequestBody NieuwWachtwoord nieuwWachtwoord, Authentication auth) {
+    public void updateWachtwoord(@PathVariable long id,
+                                 @RequestBody NieuwWachtwoord nieuwWachtwoord,
+                                 Authentication auth) {
         var ingelogdeGebruikersnaam = auth.getName();
         var gebruiker = gebruikerService.findByGebruikersnaam(ingelogdeGebruikersnaam)
                 .orElseThrow(GebruikerNietGevondenException::new);
 
         boolean isEigenAccount = gebruiker.getId() == id;
-        boolean isAdmin = gebruiker.getRol().equals("ADMIN");
+        boolean isAdmin = gebruiker.getRol().equalsIgnoreCase("ADMIN");
 
         if (!isEigenAccount && !isAdmin) {
             throw new AccessDeniedException("Geen toegang om dit wachtwoord te wijzigen");
