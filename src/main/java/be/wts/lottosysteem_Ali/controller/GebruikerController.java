@@ -83,4 +83,15 @@ public class GebruikerController {
     public void delete(@PathVariable long id) {
         gebruikerService.delete(id);
     }
+
+    @GetMapping("admin")
+    public ResponseEntity<Gebruiker> getIngelogdeGebruiker(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return gebruikerService.findByGebruikersnaam(authentication.getName())
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
 }

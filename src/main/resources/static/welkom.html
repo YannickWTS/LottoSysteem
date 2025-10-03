@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Welkom - LottoSysteem</title>
+    <link rel="stylesheet" href="css/welkom.css">
+    <link rel="icon" href="img/aIcon.ico" type="image/x-icon">
+    <script src="js/welkom.js" type="module"></script>
+</head>
+<body>
+<button id="logoutBtn" class="secondary">Afmelden</button>
+<div class="container">
+
+    <h1>Welkom - <span id="gebruiker">...</span></h1>
+    <p id="quote">...</p>
+
+    <main>
+        <section class="grid">
+            <button onclick="window.location.href='bestelling.html'" class="tile">➕ Nieuwe bestelling</button>
+            <button onclick="window.location.href='klanten.html'" class="tile">👥 Klanten</button>
+            <button onclick="window.location.href='wachtwoordWijzigen.html'" class="tile">🔒 Wachtwoord wijzigen</button>
+            <button onclick="window.location.href='gebruikerAanmaken.html'" class="tile admin-only">👤 Gebruiker aanmaken</button>
+        </section>
+    </main>
+</div>
+</body>
+</html>
