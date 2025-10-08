@@ -1,0 +1,75 @@
+body{
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f2f4f8;
+    margin: 0;
+    padding: 0;
+}
+
+.wrap {
+    max-width: 980px;
+    margin: 40px auto;
+    font-family: system-ui, sans-serif;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.card {
+    background: #fff;
+    padding: 16px;
+    border-radius: 16px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
+    margin-bottom: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+.t {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.t th, .t td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.t td:last-child {
+    white-space: nowrap;
+}
+
+button {
+    border: 0;
+    border-radius: 12px;
+    padding: 8px 12px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
+}
+
+button.danger {
+    background: #ffe9e9;
+}
+
+button.warn {
+    background: #fff3d6;
+}
+
+label {
+    display: block;
+    margin: 8px 0;
+    padding-right: 100px;
+}
+
+input[type=password] {
+    width: 25%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+}

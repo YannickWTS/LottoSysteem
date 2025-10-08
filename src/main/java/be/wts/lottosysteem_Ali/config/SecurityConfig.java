@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/data/**", "/auth/login", "/img/**").permitAll()
-                        .requestMatchers("/index.html", "/welkom.html", "/gebruikerAanmaken.html", "/wachtwoordWijzigen.html").permitAll()
+                        .requestMatchers("/index.html", "/welkom.html", "/gebruikers.html", "/wachtwoordWijzigen.html").permitAll()
                         .requestMatchers("/gebruiker/**").authenticated()
                         .requestMatchers("/bestelling/**").authenticated()
                         .requestMatchers("/klanten/**").authenticated()

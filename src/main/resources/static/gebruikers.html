@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <title>Gebruikers</title>
+    <link rel="icon" href="/img/aIcon.ico">
+    <link rel="stylesheet" href="/css/gebruikers.css">
+</head>
+<body>
+<main class="wrap">
+    <header class="top">
+        <h1>Gebruikers</h1>
+        <button id="btnTerug">← Terug</button>
+    </header>
+
+    <!-- Eigen wachtwoord wijzigen (zichtbaar voor iedereen) -->
+    <section class="card">
+        <h2>Mijn wachtwoord wijzigen</h2>
+        <form id="formWachtwoord">
+            <label>Nieuw wachtwoord
+                <input type="password" name="w1" required minlength="6">
+            </label>
+            <label>Herhaal wachtwoord
+                <input type="password" name="w2" required minlength="6">
+            </label>
+            <button type="submit">Opslaan</button>
+        </form>
+    </section>
+
+    <!-- Admin-blok (alleen zichtbaar als rol === ADMIN) -->
+    <section id="adminBlok" class="card hidden">
+        <div class="adminHead">
+            <h2>Alle gebruikers (ADMIN)</h2>
+            <button id="btnNieuweUser">+ Nieuwe gebruiker</button>
+        </div>
+        <table class="t">
+            <thead>
+            <tr><th>ID</th><th>Gebruikersnaam</th><th>Rol</th><th>Acties</th></tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+        </table>
+    </section>
+</main>
+<script src="/js/gebruikers.js" defer></script>
+</body>
+</html>
