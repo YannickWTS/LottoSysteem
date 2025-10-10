@@ -1,10 +1,12 @@
 package be.wts.lottosysteem_Ali.config;
 
 import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
+import be.wts.lottosysteem_Ali.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -50,23 +52,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService(GebruikerRepository repo) {
-        return gebruikersnaam -> repo.findByGebruikersnaam(gebruikersnaam)
-                .map(gebruiker -> User.withUsername(gebruiker.getGebruikersnaam())
-                        .password(gebruiker.getWachtwoord()) // hash uit DB
-                        .roles(gebruiker.getRol())            // bv. ADMIN, USER
-                        .build())
-                .orElseThrow(() -> new UsernameNotFoundException("Gebruiker niet gevonden"));
+    public DaoAuthenticationProvider authenticationProvider(CustomUserDetailsService uds,
+                                                            PasswordEncoder encoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(uds);
+        provider.setPasswordEncoder(encoder);
+        return provider;
     }
 
-//    @Bean
-//    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-//        return http.getSharedObject(AuthenticationManagerBuilder.class)
-//                .build();
-//    }
-
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+    public AuthenticationManager authenticationManager(DaoAuthenticationProvider provider) {
+        return authentication -> provider.authenticate(authentication);
     }
 }

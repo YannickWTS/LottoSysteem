@@ -1,75 +1,193 @@
-body{
-    font-family: 'Segoe UI', sans-serif;
-    background-color: #f2f4f8;
-    margin: 0;
-    padding: 0;
+/* ===== Basistypo & layout ===== */
+:root{
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #0f172a;               /* slate-900 */
+    --muted: #64748b;              /* slate-500 */
+    --border: #e5e7eb;             /* neutral border */
+    --shadow: 0 10px 25px rgba(15, 23, 42, .06);
+
+    --accent: #2563eb;             /* blauw accent */
+    --accent-weak: #e8f0ff;
+    --accent-strong: #1d4ed8;
+
+    --warn: #fff3d6;
+    --danger-bg: #ffe9e9;
+    --danger: #b91c1c;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --pad: 16px;
 }
 
-.wrap {
-    max-width: 980px;
+html, body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+}
+
+.wrap{
+    max-width: 1080px;
     margin: 40px auto;
-    font-family: system-ui, sans-serif;
+    padding: 0 14px;
 }
 
-.top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom: 18px;
+}
+.top h1{ font-size: 40px; letter-spacing:.2px; }
+
+/* ===== Kaarten ===== */
+.card{
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 22px;
+    margin: 18px 0;
 }
 
-.card {
-    background: #fff;
-    padding: 16px;
-    border-radius: 16px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, .08);
-    margin-bottom: 20px;
+.card h2{
+    font-size: 22px;
+    margin: 0 0 14px 0;
 }
 
-.hidden {
-    display: none;
-}
-
-.t {
+/* ===== Formuliervelden ===== */
+label{ display:grid; gap:8px; margin: 10px 0; color: var(--muted); }
+input[type=password], input[type=text]{
     width: 100%;
-    border-collapse: collapse;
+    max-width: 260px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: #fff;
+    outline: none;
+}
+input:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-weak);
 }
 
-.t th, .t td {
-    padding: 10px;
-    border-bottom: 1px solid #eee;
-    text-align: left;
-}
-
-.t td:last-child {
-    white-space: nowrap;
-}
-
-button {
+/* ===== Buttons ===== */
+button{
     border: 0;
-    border-radius: 12px;
-    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, .06);
+    background: var(--accent-weak);
+    color: var(--accent-strong);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .15);
+    transition: transform .06s ease, filter .15s ease;
+}
+button:hover{ filter: brightness(.98); }
+button:active{ transform: translateY(1px); }
+
+#btnTerug{
+    background: #fff;
+    color: var(--muted);
+    box-shadow: var(--shadow);
 }
 
-button.danger {
-    background: #ffe9e9;
+button.danger{
+    background: var(--danger-bg);
+    color: var(--danger);
+    box-shadow: 0 2px 8px rgba(185, 28, 28, .12);
 }
 
-button.warn {
-    background: #fff3d6;
+/* ===== Tabel (lijst gebruikers) ===== */
+.t{
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px; /* lucht tussen rijen */
+}
+.t thead th{
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 14px 8px 14px;
+}
+.t tbody tr{
+    background: #fff;
+    box-shadow: var(--shadow);
+    border-radius: var(--radius-sm);
+}
+.t tbody tr td{
+    padding: 14px;
+}
+.t tbody tr td:first-child{ border-top-left-radius: var(--radius-sm); border-bottom-left-radius: var(--radius-sm); }
+.t tbody tr td:last-child { border-top-right-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm); }
+
+/* rij-hover */
+.t tbody tr:hover{
+    outline: 2px solid rgba(37, 99, 235, .08);
 }
 
-label {
-    display: block;
-    margin: 8px 0;
-    padding-right: 100px;
+/* ===== Select (rol) – custom look ===== */
+select{
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 10px 38px 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+select:focus{
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-weak);
 }
 
-input[type=password] {
-    width: 25%;
-    padding: 10px;
-    border: 1px solid #ddd;
+/* ===== Details/summary (uitklapper “Bewerk”) ===== */
+details{
+    margin-top: 6px;
+}
+details summary{
+    list-style: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 700;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
     border-radius: 10px;
 }
+details summary::before{
+    content: "▸";
+    transition: transform .15s ease;
+    color: var(--accent-strong);
+}
+details[open] summary::before{
+    transform: rotate(90deg);
+}
+details[open] summary{
+    background: #f8fafc;
+    color: var(--accent-strong);
+}
+
+/* inhoud van de editor-rij */
+.form-row{
+    display: grid;
+    grid-template-columns: 180px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    margin: 10px 0;
+}
+.form-row label{
+    color: var(--muted);
+    margin: 0;
+}
+
+/* ===== Utilities ===== */
+.hidden{ display:none; }
+
+/* iets meer lucht onder de admin-tabel */
+#adminBlok .t{ margin-top: 8px; }
+#adminBlok .adminHead{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;
+}
+#btnNieuweUser{ background: var(--accent-weak); }

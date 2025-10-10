@@ -1,10 +1,12 @@
 package be.wts.lottosysteem_Ali.service;
 
+import be.wts.lottosysteem_Ali.dto.GebruikerView;
 import be.wts.lottosysteem_Ali.model.Gebruiker;
 import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -49,5 +51,9 @@ public class GebruikerService {
 
    public void delete(long id) {
         gebruikerRepository.delete(id);
+   }
+
+   public List<GebruikerView> findAllViews() {
+        return gebruikerRepository.findAllViews();
    }
 }

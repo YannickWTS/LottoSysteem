@@ -25,16 +25,33 @@ public class LoginController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody InlogRequest request, HttpServletRequest httpRequest) {
-        try{
+        try {
             UsernamePasswordAuthenticationToken authToken =
                     new UsernamePasswordAuthenticationToken(request.gebruikersnaam(), request.wachtwoord());
 
             Authentication auth = authManager.authenticate(authToken);
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            httpRequest.getSession();
+
+            // >>> maak een eigen context en schrijf die zowel naar de holder als naar de sessie
+            var context = org.springframework.security.core.context.SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(auth);
+            org.springframework.security.core.context.SecurityContextHolder.setContext(context);
+
+            // Persist in de HTTP-sessie (BELANGRIJK)
+            var session = httpRequest.getSession(true);
+            session.setAttribute(
+                    org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                    context
+            );
+
             return ResponseEntity.ok().build();
         } catch (BadCredentialsException ex) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
+    }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletRequest request) {
+        request.getSession(false).invalidate();
+        SecurityContextHolder.clearContext();
     }
 }

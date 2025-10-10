@@ -1,11 +1,13 @@
 package be.wts.lottosysteem_Ali.repository;
 
 
+import be.wts.lottosysteem_Ali.dto.GebruikerView;
 import be.wts.lottosysteem_Ali.model.Gebruiker;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -40,7 +42,7 @@ public class GebruikerRepository {
     }
 
     public long save(Gebruiker gebruiker) {
-        String sql = """
+        var sql = """
                 INSERT INTO gebruiker (gebruikersnaam, wachtwoord, rol)
                 VALUES (?, ?, ?)
                 """;
@@ -67,5 +69,16 @@ public class GebruikerRepository {
         jdbcClient.sql(sql)
                 .param(id)
                 .update();
+    }
+
+    public List<GebruikerView> findAllViews() {
+        var sql = """
+                select id, gebruikersnaam, rol
+                from gebruiker
+                order by id
+                """;
+        return jdbcClient.sql(sql)
+                .query(GebruikerView.class)
+                .list();
     }
 }

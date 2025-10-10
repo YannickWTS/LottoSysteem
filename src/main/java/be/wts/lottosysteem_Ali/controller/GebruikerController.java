@@ -1,5 +1,6 @@
 package be.wts.lottosysteem_Ali.controller;
 
+import be.wts.lottosysteem_Ali.dto.GebruikerView;
 import be.wts.lottosysteem_Ali.dto.InlogRequest;
 import be.wts.lottosysteem_Ali.dto.NieuwWachtwoord;
 import be.wts.lottosysteem_Ali.dto.NieuweGebruiker;
@@ -16,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequestMapping("gebruiker")
@@ -93,5 +95,11 @@ public class GebruikerController {
         return gebruikerService.findByGebruikersnaam(authentication.getName())
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    }
+
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<GebruikerView> findAll() {
+        return gebruikerService.findAllViews();
     }
 }

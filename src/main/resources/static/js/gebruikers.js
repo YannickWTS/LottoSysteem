@@ -1,78 +1,225 @@
-const $ = (q)=>document.querySelector(q);
-const api = (u,o={})=>fetch(u,{ credentials:'include', headers:{'Content-Type':'application/json'}, ...o });
+// ===== Helpers ===============================================================
 
-const rol = localStorage.getItem('rol');          // bij login gezet
-const meId = Number(localStorage.getItem('gebruikerId')); // bij login zetten als je dat nog niet deed
+function qs(selector) {
+    return document.querySelector(selector);
+}
 
-// Navigatie
-$("#btnTerug").addEventListener('click', ()=>location.href='/welkom.html');
+async function apiFetch(url, options = {}) {
+    // Zorg dat cookies/sessie meegaan
+    const response = await fetch(url, {
+        credentials: "include",
+        headers: {"Content-Type": "application/json"},
+        ...options
+    });
+    return response;
+}
 
-// 1) Eigen wachtwoord wijzigen (iedereen)
-$("#formWachtwoord").addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    const w1 = e.target.w1.value.trim();
-    const w2 = e.target.w2.value.trim();
-    if(w1.length < 6) return alert("Wachtwoord te kort (min 6).");
-    if(w1 !== w2)   return alert("Wachtwoorden komen niet overeen.");
-    const r = await api(`/gebruiker/${meId}/wachtwoord`, { method:'PUT', body: JSON.stringify({ wachtwoord: w1 }) });
-    if(r.ok){ alert("Wachtwoord gewijzigd."); e.target.reset(); }
-    else if(r.status===401){ location.href='/index.html'; }
-    else if(r.status===403){ alert('Geen rechten om dit te wijzigen.'); }
-    else { alert('Wijzigen mislukt.'); }
-});
+function getCurrentUserRole() {
+    return localStorage.getItem("rol"); // door login.js gezet (USER/ADMIN)
+}
 
-// 2) Admin-blok (lijst + acties)
-async function loadUsers(){
-    const res = await api('/gebruiker');
-    if(res.status===401){ location.href='/index.html'; return; }
-    if(res.status===403){ return; } // geen admin → blok blijft verborgen
-    $("#adminBlok").classList.remove('hidden');
+function getCurrentUserId() {
+    const raw = localStorage.getItem("gebruikerId");
+    return raw ? Number(raw) : null;
+}
 
-    const lijst = await res.json();
-    const tbody = $("#usersTbody"); tbody.innerHTML = "";
-    for(const u of lijst){
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td>${u.id}</td>
-      <td>${u.gebruikersnaam}</td>
-      <td>
-        <select class="rol" data-id="${u.id}">
-          <option ${u.rol==='USER' ? 'selected':''}>USER</option>
-          <option ${u.rol==='ADMIN'? 'selected':''}>ADMIN</option>
-        </select>
-      </td>
-      <td>
-        <button class="pw warn" data-id="${u.id}">Reset wachtwoord</button>
-        <button class="del danger" data-id="${u.id}">Verwijder</button>
-      </td>`;
-        tbody.appendChild(tr);
+// ===== Navigatie =============================================================
+
+const backButton = qs("#btnTerug");
+if (backButton) {
+    backButton.addEventListener("click", () => (window.location.href = "/welkom.html"));
+}
+
+// ===== Eigen wachtwoord wijzigen ============================================
+
+const passwordForm = qs("#formWachtwoord");
+
+if (passwordForm) {
+    passwordForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const meId = getCurrentUserId();
+        if (!meId) {
+            alert("Geen gebruikers-id gevonden. Log opnieuw in.");
+            window.location.href = "/index.html";
+            return;
+        }
+
+        const newPassword = passwordForm.w1.value.trim();
+        const repeatPassword = passwordForm.w2.value.trim();
+
+        if (newPassword.length < 6) {
+            alert("Wachtwoord te kort (minimaal 6 tekens).");
+            return;
+        }
+        if (newPassword !== repeatPassword) {
+            alert("Wachtwoorden komen niet overeen.");
+            return;
+        }
+
+        const response = await apiFetch(`/gebruiker/${meId}/wachtwoord`, {
+            method: "PUT",
+            body: JSON.stringify({wachtwoord: newPassword})
+        });
+
+        if (response.ok) {
+            alert("Wachtwoord gewijzigd.");
+            passwordForm.reset();
+        } else if (response.status === 401) {
+            window.location.href = "/index.html";
+        } else if (response.status === 403) {
+            alert("Geen rechten om dit te wijzigen.");
+        } else {
+            alert("Wijzigen mislukt.");
+        }
+    });
+}
+
+// ===== Admin-lijst: laden en acties =========================================
+
+async function loadUsersForAdmin() {
+    const adminBlock = qs("#adminBlok");
+    const tableBody = qs("#usersTbody");
+
+    // Als je geen admin bent, gewoon niets tonen.
+    if (getCurrentUserRole() !== "ADMIN") {
+        return;
+    }
+
+    const response = await apiFetch("/gebruiker");
+
+    if (response.status === 401) {
+        window.location.href = "/index.html";
+        return;
+    }
+    if (response.status === 403) {
+        // Dit betekent dat de back-end je NIET als ADMIN ziet.
+        // Zie sectie 1 hierboven (ROLE_ prefix fix).
+        console.warn("403 op /gebruiker: back-end ziet je niet als ADMIN.");
+        return;
+    }
+
+    adminBlock.classList.remove("hidden");
+
+    const users = await response.json();
+    tableBody.innerHTML = "";
+
+    for (const user of users) {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+    <td>${user.id}</td>
+    <td>${user.gebruikersnaam}</td>
+    <td>
+      <select class="role-select" data-id="${user.id}" data-initial="${user.rol}">
+        <option ${user.rol === "USER" ? "selected" : ""}>USER</option>
+        <option ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
+      </select>
+    </td>
+    <td>
+      <details>
+        <summary>Bewerk</summary>
+
+        <div class="edit-grid">
+          <div class="field">
+            <label>Nieuw wachtwoord</label>
+            <input type="password" class="pw1" data-id="${user.id}" placeholder="min. 6 tekens">
+          </div>
+          <div class="field">
+            <label>Herhaal wachtwoord</label>
+            <input type="password" class="pw2" data-id="${user.id}" placeholder="herhaal">
+          </div>
+        </div>
+
+        <div class="row-actions">
+          <button class="save-user-button" data-id="${user.id}" disabled>Opslaan</button>
+          <button class="delete-user-button danger" data-id="${user.id}">Verwijder</button>
+        </div>
+      </details>
+    </td>
+  `;
+        tableBody.appendChild(row);
     }
 }
 
-document.addEventListener('change', async (e)=>{
-    if(e.target.matches('select.rol')){
-        const id = e.target.dataset.id;
-        const rol = e.target.value;
-        const r = await api(`/gebruiker/${id}/rol`, { method:'PUT', body: JSON.stringify({ rol }) });
-        if(!r.ok) { alert('Rol wijzigen mislukt.'); }
-    }
-});
+// Event-delegatie voor admin-acties (één luisteraar)
+document.addEventListener("click", async (event) => {
+    // Nieuwe gebruiker
+    if (event.target.matches("#btnNieuweUser")) {
+        const username = prompt("Gebruikersnaam:");
+        if (!username) return;
 
-document.addEventListener('click', async (e)=>{
-    if(e.target.matches('button.del')){
-        const id = e.target.dataset.id;
-        if(!confirm('Gebruiker verwijderen?')) return;
-        const r = await api(`/gebruiker/${id}`, { method:'DELETE' });
-        if(r.ok) loadUsers(); else alert('Verwijderen mislukt.');
+        const password = prompt("Wachtwoord:");
+        if (!password) return;
+
+        const roleInput = (prompt("Rol (USER/ADMIN):", "USER") || "USER").toUpperCase();
+
+        const response = await apiFetch("/gebruiker", {
+            method: "POST",
+            body: JSON.stringify({gebruikersnaam: username, wachtwoord: password, rol: roleInput})
+        });
+
+        if (response.ok) {
+            await loadUsersForAdmin();
+        } else {
+            alert("Aanmaken mislukt.");
+        }
     }
-    if(e.target.matches('button.pw')){
-        const id = e.target.dataset.id;
-        const nieuw = prompt('Nieuw tijdelijk wachtwoord:');
-        if(!nieuw) return;
-        const r = await api(`/gebruiker/${id}/wachtwoord`, { method:'PUT', body: JSON.stringify({ wachtwoord: nieuw }) });
-        if(!r.ok) alert('Reset mislukt.');
+
+    // Rol opslaan
+    if (event.target.matches(".save-role-button")) {
+        const userId = event.target.dataset.id;
+        const select = document.querySelector(`select.role-select[data-id="${userId}"]`);
+        const newRole = select.value;
+
+        const response = await apiFetch(`/gebruiker/${userId}/rol`, {
+            method: "PUT",
+            body: JSON.stringify({rol: newRole})
+        });
+
+        if (response.ok) {
+            alert("Rol opgeslagen.");
+        } else {
+            alert("Rol wijzigen mislukt.");
+        }
+    }
+
+    // Wachtwoord opslaan voor die gebruiker
+    if (event.target.matches(".save-password-button")) {
+        const userId = event.target.dataset.id;
+        const input = document.querySelector(`.password-input[data-id="${userId}"]`);
+        const newPassword = (input.value || "").trim();
+
+        if (newPassword.length < 6) {
+            alert("Wachtwoord te kort (minimaal 6 tekens).");
+            return;
+        }
+
+        const response = await apiFetch(`/gebruiker/${userId}/wachtwoord`, {
+            method: "PUT",
+            body: JSON.stringify({wachtwoord: newPassword})
+        });
+
+        if (response.ok) {
+            alert("Wachtwoord aangepast.");
+            input.value = "";
+        } else {
+            alert("Reset mislukt.");
+        }
+    }
+
+    // Verwijderen
+    if (event.target.matches(".delete-user-button")) {
+        const userId = event.target.dataset.id;
+        if (!confirm("Gebruiker verwijderen?")) return;
+
+        const response = await apiFetch(`/gebruiker/${userId}`, {method: "DELETE"});
+        if (response.ok) {
+            await loadUsersForAdmin();
+        } else {
+            alert("Verwijderen mislukt.");
+        }
     }
 });
 
 // Init
-loadUsers();
+loadUsersForAdmin();
