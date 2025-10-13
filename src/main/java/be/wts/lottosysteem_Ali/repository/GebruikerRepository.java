@@ -81,4 +81,38 @@ public class GebruikerRepository {
                 .query(GebruikerView.class)
                 .list();
     }
+
+    public int updateRol(Long id, String rol) {
+        var sql = """
+                update gebruiker
+                set rol = ?
+                where id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .params(rol, id)
+                .update();
+    }
+
+    public boolean gebruikersnaamBestaat(String gebruikersnaam) {
+        Long count = jdbcClient.sql("""
+                select count(*)
+                from gebruiker
+                where lower(gebruikersnaam) = lower(?)
+            """)
+                .param(gebruikersnaam)
+                .query(Long.class)
+                .single();
+        return count > 0;
+    }
+
+    public int updateGebruikersnaamById(long id, String nieuweGebruikersnaam) {
+        return jdbcClient.sql("""
+                update gebruiker
+                set gebruikersnaam = ?
+                where id = ?
+            """)
+                .params(nieuweGebruikersnaam, id)
+                .update();
+    }
+
 }

@@ -1,10 +1,12 @@
 package be.wts.lottosysteem_Ali.service;
 
 import be.wts.lottosysteem_Ali.dto.GebruikerView;
+import be.wts.lottosysteem_Ali.exception.GebruikerNietGevondenException;
 import be.wts.lottosysteem_Ali.model.Gebruiker;
 import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -56,4 +58,36 @@ public class GebruikerService {
    public List<GebruikerView> findAllViews() {
         return gebruikerRepository.findAllViews();
    }
+
+    public int updateRol(long id, String rol) {
+        return gebruikerRepository.updateRol(id, rol);
+    }
+
+    @Transactional
+    public Gebruiker wijzigEigenGebruikersnaam(String huidigeGebruikersnaam, String nieuweGebruikersnaam) {
+        Gebruiker ingelogde = gebruikerRepository.findByGebruikersnaam(huidigeGebruikersnaam)
+                .orElseThrow(GebruikerNietGevondenException::new);
+
+        String nieuwe = nieuweGebruikersnaam == null ? "" : nieuweGebruikersnaam.trim();
+        if (nieuwe.length() < 2) {
+            throw new IllegalArgumentException("Naam is te kort");
+        }
+        if (nieuwe.equals(ingelogde.getGebruikersnaam())) {
+            return ingelogde; // niets te doen
+        }
+        if (gebruikerRepository.gebruikersnaamBestaat(nieuwe)) {
+            throw new IllegalArgumentException("Gebruikersnaam bestaat al");
+        }
+
+        int rows = gebruikerRepository.updateGebruikersnaamById(ingelogde.getId(), nieuwe);
+        if (rows == 0) throw new IllegalStateException("Update mislukt");
+
+        // lokale kopie bijwerken voor return
+        return new Gebruiker(
+                ingelogde.getId(),
+                nieuwe,
+                ingelogde.getWachtwoord(),
+                ingelogde.getRol()
+        );
+    }
 }

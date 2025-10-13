@@ -16,16 +16,44 @@
 
     <!-- Eigen wachtwoord wijzigen (zichtbaar voor iedereen) -->
     <section class="card">
-        <h2>Mijn wachtwoord wijzigen</h2>
-        <form id="formWachtwoord">
-            <label>Nieuw wachtwoord
-                <input type="password" name="w1" required minlength="6">
-            </label>
-            <label>Herhaal wachtwoord
-                <input type="password" name="w2" required minlength="6">
-            </label>
-            <button type="submit">Opslaan</button>
-        </form>
+        <div class="grid-2">
+            <!-- LINKS: wachtwoord -->
+            <div>
+                <h2>Mijn wachtwoord wijzigen</h2>
+                <form id="formWachtwoord">
+                    <label>Nieuw wachtwoord
+                        <input type="password" name="w1" required minlength="6">
+                    </label>
+                    <label>Herhaal wachtwoord
+                        <input type="password" name="w2" required minlength="6">
+                    </label>
+                    <p id="pwFeedback" class="form-msg hidden" aria-live="polite"></p>
+                    <div class="form-actions">
+                        <button type="submit">Wachtwoord opslaan</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- RECHTS: profiel -->
+            <div>
+                <h2>Mijn profiel</h2>
+                <form id="formProfiel">
+                    <label>ID
+                        <input type="text" name="id" readonly>
+                    </label>
+                    <label>Gebruikersnaam
+                        <input type="text" name="gebruikersnaam" required minlength="2" maxlength="60">
+                    </label>
+                    <label>Rol
+                        <input type="text" name="rol" readonly>
+                    </label>
+                    <p id="profielFeedback" class="form-msg hidden" aria-live="polite"></p>
+                    <div class="form-actions">
+                        <button type="submit">Gebruikersnaam opslaan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </section>
 
     <!-- Admin-blok (alleen zichtbaar als rol === ADMIN) -->

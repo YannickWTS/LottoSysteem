@@ -1,19 +1,19 @@
 package be.wts.lottosysteem_Ali.controller;
 
-import be.wts.lottosysteem_Ali.dto.GebruikerView;
-import be.wts.lottosysteem_Ali.dto.InlogRequest;
-import be.wts.lottosysteem_Ali.dto.NieuwWachtwoord;
-import be.wts.lottosysteem_Ali.dto.NieuweGebruiker;
+import be.wts.lottosysteem_Ali.dto.*;
 import be.wts.lottosysteem_Ali.exception.GebruikerNietGevondenException;
 import be.wts.lottosysteem_Ali.exception.WachtwoordUpdateException;
 import be.wts.lottosysteem_Ali.model.Gebruiker;
 import be.wts.lottosysteem_Ali.service.GebruikerService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -102,4 +102,56 @@ public class GebruikerController {
     public List<GebruikerView> findAll() {
         return gebruikerService.findAllViews();
     }
+
+    @PutMapping("{id}/rol")
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateRol(@PathVariable long id, @RequestBody RolUpdate update) {
+        if (update == null || update.rol() == null) {
+            throw new IllegalArgumentException("Rol is verplicht");
+        }
+        var rol = update.rol().toUpperCase();
+        if (!rol.equals("ADMIN") && !rol.equals("USER")) {
+            throw new IllegalArgumentException("Rol moet USER of ADMIN zijn");
+        }
+
+        int rows = gebruikerService.updateRol(id, rol);
+        if (rows == 0) {
+            throw new GebruikerNietGevondenException(); // of 404 voor onbestaande id
+        }
+    }
+
+    // be/wts/lottosysteem_Ali/controller/GebruikerController.java
+    @PutMapping("mijn-naam")
+    public ResponseEntity<Void> updateMijnGebruikersnaam(
+            @RequestBody UpdateUsernameRequest request,
+            Authentication authentication,
+            HttpServletRequest httpRequest) {
+
+        if (request == null || request.gebruikersnaam() == null) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        // wijzig in DB
+        Gebruiker bijgewerkt = gebruikerService
+                .wijzigEigenGebruikersnaam(authentication.getName(), request.gebruikersnaam());
+
+        // === SecurityContext verversen (géén herlogin nodig) ===
+        var nieuweAuth = new UsernamePasswordAuthenticationToken(
+                bijgewerkt.getGebruikersnaam(),
+                authentication.getCredentials(),
+                authentication.getAuthorities()
+        );
+        var context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(nieuweAuth);
+        SecurityContextHolder.setContext(context);
+
+        httpRequest.getSession(true).setAttribute(
+                org.springframework.security.web.context.HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+                context
+        );
+
+        return ResponseEntity.noContent().build();
+    }
+
 }
