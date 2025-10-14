@@ -6,6 +6,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -18,7 +20,7 @@ public class BestellingRepository {
 
     public List<Bestelling> findAll() {
         var sql = """
-                select id, klant_id, speltype, maand, datum_registratie, betaald
+                select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
                 from bestelling
                 order by id
                 """;
@@ -29,15 +31,17 @@ public class BestellingRepository {
                         rs.getString("speltype"),
                         rs.getString("maand"),
                         rs.getDate("datum_registratie").toLocalDate(),
-                        rs.getBoolean("betaald")
+                        rs.getBoolean("betaald"),
+                        rs.getLong("medewerker_id"),
+                        rs.getTimestamp("laatste_update").toLocalDateTime()
                 ))
                 .list();
     }
 
     public long save(Bestelling bestelling) {
         String sql = """
-            INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id)
+            VALUES (?, ?, ?, ?, ?, ?)
             """;
 
         var keyHolder = new GeneratedKeyHolder();
@@ -48,11 +52,23 @@ public class BestellingRepository {
                         bestelling.getSpelType(),
                         bestelling.getMaand(),
                         bestelling.getDatumRegistratie(),
-                        bestelling.isBetaald()
+                        bestelling.isBetaald(),
+                        bestelling.getMedewerkerId()
                 )
                 .update(keyHolder);
 
         return keyHolder.getKey().longValue();
+    }
+
+    public void updateBetaald(long id, boolean betaald) {
+        var sql = """
+                update bestelling
+                set betaald = ?, laatste_update = ?
+                where id = ?
+                """;
+        jdbcClient.sql(sql)
+                .params(betaald, Timestamp.valueOf(LocalDateTime.now()), id)
+                .update();
     }
 
     public void delete(long id){

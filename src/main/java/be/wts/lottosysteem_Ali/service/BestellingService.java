@@ -1,16 +1,25 @@
 package be.wts.lottosysteem_Ali.service;
 
+import be.wts.lottosysteem_Ali.dto.NieuweBestelling;
 import be.wts.lottosysteem_Ali.model.Bestelling;
+import be.wts.lottosysteem_Ali.model.Klant;
 import be.wts.lottosysteem_Ali.repository.BestellingRepository;
+import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 public class BestellingService {
     private final BestellingRepository bestellingRepository;
-    public BestellingService(BestellingRepository bestellingRepository) {
+    private final GebruikerRepository gebruikerRepository;
+
+    public BestellingService(BestellingRepository bestellingRepository, GebruikerRepository gebruikerRepository) {
         this.bestellingRepository = bestellingRepository;
+        this.gebruikerRepository = gebruikerRepository;
     }
 
     private static final List<String> TOEGESTANE_SPELTYPES = List.of(
@@ -24,28 +33,38 @@ public class BestellingService {
         return bestellingRepository.findAll();
     }
 
-    public long addBestelling(Bestelling bestelling) {
-        // Validatie: speltype mag niet leeg zijn
-        if (bestelling.getSpelType() == null || bestelling.getSpelType().isEmpty()) {
+    public long addBestelling(NieuweBestelling dto) {
+        if (dto.spelType() == null || dto.spelType().isBlank())
             throw new IllegalArgumentException("Speltype mag niet leeg zijn!");
-        }
-
-        // Validatie: speltype moet geldig zijn
-        if (!TOEGESTANE_SPELTYPES.contains(bestelling.getSpelType())) {
+        if (!TOEGESTANE_SPELTYPES.contains(dto.spelType()))
             throw new IllegalArgumentException("Ongeldig speltype!");
-        }
-
-        // Validatie: klant mag niet null zijn.
-        if (bestelling.getKlant() == null || bestelling.getKlant().getId() <= 0) {
+        if (dto.klantId() <= 0)
             throw new IllegalArgumentException("Klant verplicht!");
-        }
+        var betaald = dto.betaald() != null && dto.betaald();
 
-        // Validatie: datumRegistratie mag niet null zijn
-        if (bestelling.getDatumRegistratie() == null) {
-            throw new IllegalArgumentException("Datum van registratie mag niet null zijn!");
-        }
+        // maand basic check (optioneel strikter maken)
+        if (dto.maand() == null || dto.maand().isBlank())
+            throw new IllegalArgumentException("Maand verplicht!");
+
+        // Medewerker = ingelogde user
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        var gebruiker = gebruikerRepository.findByGebruikersnaam(auth.getName())
+                .orElseThrow(() -> new IllegalStateException("Ingelogde gebruiker niet gevonden"));
+
+        var bestelling = new Bestelling(
+                new Klant(dto.klantId()),
+                dto.spelType(),
+                dto.maand(),
+                LocalDate.now(),
+                betaald,
+                gebruiker.getId()
+        );
 
         return bestellingRepository.save(bestelling);
+    }
+
+    public void setBetaald(long id, boolean betaald) {
+        bestellingRepository.updateBetaald(id, betaald);
     }
 
     public void deleteBestelling(long id) {
