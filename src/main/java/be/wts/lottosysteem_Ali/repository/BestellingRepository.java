@@ -65,4 +65,16 @@ public class BestellingRepository {
                 .param(id)
                 .update();
     }
+
+    public long countByKlantId(long klantId){
+        var sql = """
+                select count(*)
+                from bestelling
+                where klant_Id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .param(klantId)
+                .query(Long.class)
+                .single();
+    }
 }

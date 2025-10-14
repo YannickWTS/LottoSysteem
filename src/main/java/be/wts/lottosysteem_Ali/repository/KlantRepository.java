@@ -78,8 +78,13 @@ public class KlantRepository {
     }
 
     public int delete(long id) {
-        var sql = "delete from klant where id = ?";
-        return jdbcClient.sql(sql).param(id).update();
+        var sql = """
+                delete
+                from klant
+                where id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .param(id)
+                .update();
     }
-
 }

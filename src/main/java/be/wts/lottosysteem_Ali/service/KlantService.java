@@ -2,6 +2,7 @@ package be.wts.lottosysteem_Ali.service;
 
 import be.wts.lottosysteem_Ali.exception.KlantNietGevondenException;
 import be.wts.lottosysteem_Ali.model.Klant;
+import be.wts.lottosysteem_Ali.repository.BestellingRepository;
 import be.wts.lottosysteem_Ali.repository.KlantRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,9 +13,11 @@ import java.util.Optional;
 @Service
 public class KlantService {
     private final KlantRepository klantRepository;
+    private final BestellingRepository bestellingRepository;
 
-    public KlantService(KlantRepository klantRepository) {
+    public KlantService(KlantRepository klantRepository, BestellingRepository bestellingRepository) {
         this.klantRepository = klantRepository;
+        this.bestellingRepository = bestellingRepository;
     }
 
     public List<Klant> findAll() {
@@ -51,7 +54,10 @@ public class KlantService {
 
     @Transactional
     public void delete(long id) {
-        var deleted = klantRepository.delete(id);
-        if (deleted == 0) throw new KlantNietGevondenException(id);
+        if (bestellingRepository.countByKlantId(id) > 0) {
+            throw new IllegalStateException("Klant heeft nog bestellingen en kan niet verwijderd worden.");
+        }
+        var rows = klantRepository.delete(id);
+        if (rows == 0) throw new KlantNietGevondenException(id);
     }
 }
