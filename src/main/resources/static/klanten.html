@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <title>Klanten</title>
+    <link rel="icon" href="/img/aIcon.ico">
+    <link rel="stylesheet" href="/css/klanten.css">
+    <script src="/js/klanten.js" type="module"></script>
+</head>
+<body>
+<div class="wrap">
+    <div class="top">
+        <h1>Klanten</h1>
+        <div class="action-list">
+            <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
+            <button id="btnLogout">Afmelden</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="grid-2">
+            <div>
+                <h2>Lijst</h2>
+                <label>
+                    <span>Zoeken</span>
+                    <input id="inpZoek" type="text" placeholder="Naam of e-mail…"/>
+                </label>
+            </div>
+
+            <!-- Alleen zichtbaar voor ADMIN via JS -->
+            <div id="createBox" class="hidden">
+                <h2>Nieuwe klant</h2>
+                <label>
+                    <span>Naam</span>
+                    <input id="newNaam" type="text"/>
+                </label>
+                <label>
+                    <span>Email</span>
+                    <input id="newEmail" type="text"/>
+                </label>
+                <div class="form-actions">
+                    <button id="btnCreate">Toevoegen</button>
+                </div>
+                <p id="createMsg" class="form-msg"></p>
+            </div>
+        </div>
+    </div>
+
+    <section id="adminBlok" class="card">
+        <div class="adminHead">
+            <h2>Klantenbeheer</h2>
+            <button id="btnNieuweKlant">+ Nieuwe klant</button>
+            <div class="create-slot"></div>
+        </div>
+
+        <table class="t">
+            <thead>
+            <tr>
+                <th>Naam</th>
+                <th>Email</th>
+                <th style="width:240px;">Acties</th>
+            </tr>
+            </thead>
+            <tbody id="tbodyKlanten"></tbody>
+        </table>
+    </section>
+
+</div>
+
+</body>
+</html>

@@ -21,7 +21,7 @@ public class KlantRepository {
         var sql = """
                 select id, naam, email
                 from klant
-                order by id
+                order by lower(naam)
                 """;
         return jdbcClient.sql(sql)
                 .query(Klant.class)
@@ -40,15 +40,15 @@ public class KlantRepository {
                 .optional();
     }
 
-    public List<Klant> findByNaamBegintMet(String naamDeel) {
+    public List<Klant> findByNaamBevat(String deel) {
         var sql = """
                 select id, naam, email
                 from klant
                 where lower(naam) like ?
-                order by naam
+                order by lower(naam)
                 """;
         return jdbcClient.sql(sql)
-                .param(naamDeel.toLowerCase() + "%")
+                .param("%" + deel.toLowerCase() + "%")
                 .query(Klant.class)
                 .list();
     }
@@ -64,6 +64,22 @@ public class KlantRepository {
                 .update(keyholder);
 
         return Objects.requireNonNull(keyholder.getKey()).longValue();
+    }
+
+    public int update(long id, String naam, String email) {
+        var sql = """
+                update klant
+                set naam = ?, email = ?
+                where id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .params(naam, email, id)
+                .update();
+    }
+
+    public int delete(long id) {
+        var sql = "delete from klant where id = ?";
+        return jdbcClient.sql(sql).param(id).update();
     }
 
 }

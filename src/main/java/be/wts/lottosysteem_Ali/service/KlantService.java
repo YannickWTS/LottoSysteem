@@ -12,6 +12,7 @@ import java.util.Optional;
 @Service
 public class KlantService {
     private final KlantRepository klantRepository;
+
     public KlantService(KlantRepository klantRepository) {
         this.klantRepository = klantRepository;
     }
@@ -25,12 +26,32 @@ public class KlantService {
                 .orElseThrow(() -> new KlantNietGevondenException(id));
     }
 
-    public List<Klant> findByNaamBegintMet(String naamDeel) {
-        return klantRepository.findByNaamBegintMet(naamDeel);
+    public List<Klant> findByNaamBevat(String naamDeel) {
+        return klantRepository.findByNaamBevat(naamDeel.trim());
     }
 
     @Transactional
     public long save(Klant klant) {
+        var naam = klant.getNaam().trim();
+        var email = klant.getEmail().trim();
+        klant.setNaam(naam);
+        klant.setEmail(email);
         return klantRepository.save(klant);
+    }
+
+    @Transactional
+    public void update(long id, Klant payload) {
+        var updated = klantRepository.update(
+                id,
+                payload.getNaam().trim(),
+                payload.getEmail().trim()
+        );
+        if (updated == 0) throw new KlantNietGevondenException(id);
+    }
+
+    @Transactional
+    public void delete(long id) {
+        var deleted = klantRepository.delete(id);
+        if (deleted == 0) throw new KlantNietGevondenException(id);
     }
 }
