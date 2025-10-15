@@ -268,9 +268,28 @@ button.danger {
 
 .popover .row {
     display: grid;
-    grid-template-columns: 80px 1fr auto;
-    gap: 10px;
+    grid-template-columns: 90px 1fr; /* label | input */
+    gap: 10px;                       /* horizontale gap */
     align-items: center;
+}
+
+/* verticale gap tussen de rijen */
+.popover .row + .row {
+    margin-top: 10px;
+}
+
+/* knoppen rij en feedback */
+.popover .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+/* inputs in popover lekker breed */
+.popover input[type="text"],
+.popover input[type="email"] {
+    width: 100%;
 }
 
 .inline-slot {

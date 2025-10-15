@@ -87,4 +87,16 @@ public class KlantRepository {
                 .param(id)
                 .update();
     }
+
+    public Optional<String> findNaamById(long id) {
+        var sql = """
+                select naam
+                from klant
+                where id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .param(id)
+                .query(String.class)
+                .optional();
+    }
 }

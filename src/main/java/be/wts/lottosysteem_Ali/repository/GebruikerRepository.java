@@ -95,10 +95,10 @@ public class GebruikerRepository {
 
     public boolean gebruikersnaamBestaat(String gebruikersnaam) {
         Long count = jdbcClient.sql("""
-                select count(*)
-                from gebruiker
-                where lower(gebruikersnaam) = lower(?)
-            """)
+                            select count(*)
+                            from gebruiker
+                            where lower(gebruikersnaam) = lower(?)
+                        """)
                 .param(gebruikersnaam)
                 .query(Long.class)
                 .single();
@@ -107,12 +107,36 @@ public class GebruikerRepository {
 
     public int updateGebruikersnaamById(long id, String nieuweGebruikersnaam) {
         return jdbcClient.sql("""
-                update gebruiker
-                set gebruikersnaam = ?
-                where id = ?
-            """)
+                            update gebruiker
+                            set gebruikersnaam = ?
+                            where id = ?
+                        """)
                 .params(nieuweGebruikersnaam, id)
                 .update();
+    }
+
+    public Optional<Long> findIdByGebruikersnaam(String gebruikersnaam) {
+        var sql = """
+                select id
+                from gebruiker
+                where lower(gebruikersnaam) = lower(?)
+                """;
+        return jdbcClient.sql(sql)
+                .param(gebruikersnaam)
+                .query(Long.class)
+                .optional();
+    }
+
+    public Optional<String> findNaamById(long id) {
+        var sql = """
+                select gebruikersnaam
+                from gebruiker
+                where id = ?
+                """;
+        return jdbcClient.sql(sql)
+                .param(id)
+                .query(String.class)
+                .optional();
     }
 
 }

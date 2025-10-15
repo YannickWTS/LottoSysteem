@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8" />
+    <title>Bestellingen</title>
+    <link rel="icon" href="/img/aIcon.ico" />
+    <!-- zelfde stylesheet hergebruiken -->
+    <link rel="stylesheet" href="/css/gebruikers.css" />
+    <script src="/js/bestellingen.js" type="module"></script>
+</head>
+<body>
+<main class="wrap">
+    <div class="top">
+        <h1>Bestellingen</h1>
+        <div class="action-list">
+            <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
+            <button id="btnLogout">Afmelden</button>
+        </div>
+    </div>
+
+    <!-- Nieuwe bestelling -->
+    <section class="card">
+        <h2>Nieuwe bestelling</h2>
+        <form id="formBestelling">
+            <div class="grid-2">
+                <div>
+                    <label>Klant
+                        <div class="combo">
+                            <input type="text" id="klantSearch" placeholder="Zoek klant op naam…" autocomplete="off">
+                            <div id="klantList" class="combo-list hidden"></div>
+                        </div>
+                    </label>
+
+                    <label>Speltype
+                        <select name="spelType" id="selSpel" required>
+                            <option value="">— kies —</option>
+                            <option>Lotto</option>
+                            <option>Lotto Extra</option>
+                            <option>EuroMillions</option>
+                            <option>EuroMillions Extra</option>
+                        </select>
+                    </label>
+                </div>
+
+                <div>
+                    <label>Maand (nl-BE)
+                        <input type="text" id="inpMaand" name="maand" readonly>
+                    </label>
+
+                    <label style="display:flex;align-items:center;gap:8px;">
+                        <input type="checkbox" id="chkBetaald" /> Betaald
+                    </label>
+
+                    <p id="formMsg" class="form-msg hidden" aria-live="polite"></p>
+
+                    <div class="form-actions">
+                        <button id="btnOpslaan" type="submit" disabled>Opslaan</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Overzicht -->
+    <section class="card">
+        <div class="adminHead">
+            <h2>Overzicht bestellingen</h2>
+            <div class="action-list">
+                <span class="action-link" id="btnRefresh">Vernieuwen</span>
+            </div>
+        </div>
+
+        <table class="t">
+            <thead>
+            <tr>
+                <th>ID</th><th>Klant</th><th>Speltype</th><th>Maand</th>
+                <th>Datum</th><th>Betaald</th><th>Medewerker</th><th>Acties</th>
+            </tr>
+            </thead>
+            <tbody id="bestelTbody"></tbody>
+        </table>
+    </section>
+</main>
+</body>
+</html>

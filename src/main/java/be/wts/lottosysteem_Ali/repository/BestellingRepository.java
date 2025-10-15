@@ -40,9 +40,9 @@ public class BestellingRepository {
 
     public long save(Bestelling bestelling) {
         String sql = """
-            INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
 
         var keyHolder = new GeneratedKeyHolder();
 
@@ -60,18 +60,21 @@ public class BestellingRepository {
         return keyHolder.getKey().longValue();
     }
 
-    public void updateBetaald(long id, boolean betaald) {
+    public int updateBetaald(long id, boolean betaald, long bewerkerId) {
         var sql = """
-                update bestelling
-                set betaald = ?, laatste_update = ?
-                where id = ?
+                    update bestelling
+                    set betaald = ?,
+                        laatste_update = ?,
+                        laatste_bewerker_id = ?
+                    where id = ?
                 """;
-        jdbcClient.sql(sql)
-                .params(betaald, Timestamp.valueOf(LocalDateTime.now()), id)
-                .update();
+        return jdbcClient.sql(sql)
+                .params(betaald, Timestamp.valueOf(LocalDateTime.now()), bewerkerId, id)
+                .update(); // geeft # rows terug
     }
 
-    public void delete(long id){
+
+    public void delete(long id) {
         var sql = """
                 delete
                 from bestelling
@@ -82,7 +85,7 @@ public class BestellingRepository {
                 .update();
     }
 
-    public long countByKlantId(long klantId){
+    public long countByKlantId(long klantId) {
         var sql = """
                 select count(*)
                 from bestelling

@@ -6,10 +6,12 @@ import java.time.LocalDateTime;
 public record BestellingView(
         long id,
         long klantId,
+        String klantNaam,
         String spelType,
         String maand,
         LocalDate datumRegistratie,
         boolean betaald,
         long medewerkerId,
+        String medewerkerNaam,
         LocalDateTime laatsteUpdate
 ) {}

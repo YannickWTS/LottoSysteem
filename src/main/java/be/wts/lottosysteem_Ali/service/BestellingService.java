@@ -5,9 +5,11 @@ import be.wts.lottosysteem_Ali.model.Bestelling;
 import be.wts.lottosysteem_Ali.model.Klant;
 import be.wts.lottosysteem_Ali.repository.BestellingRepository;
 import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -64,8 +66,22 @@ public class BestellingService {
     }
 
     public void setBetaald(long id, boolean betaald) {
-        bestellingRepository.updateBetaald(id, betaald);
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Kies één van beide (wat jij al hebt):
+        // A) via Optional<Long>:
+        var bewerkerId = gebruikerRepository.findIdByGebruikersnaam(auth.getName())
+                .orElseThrow(() -> new IllegalStateException("Ingelogde gebruiker niet gevonden"));
+
+        // B) of via Optional<Gebruiker> (dan .map(Gebruiker::getId))
+
+        int updated = bestellingRepository.updateBetaald(id, betaald, bewerkerId);
+        if (updated == 0) {
+            // niets gevonden → 404 is logischer dan 409
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bestelling niet gevonden");
+        }
     }
+
 
     public void deleteBestelling(long id) {
         bestellingRepository.delete(id);

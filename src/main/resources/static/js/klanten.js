@@ -102,7 +102,7 @@ async function load() {
 function render() {
     const q = (zoek?.value || "").toLowerCase();
     const list = (klanten || []).filter(k =>
-        k.naam.toLowerCase().includes(q) || k.email.toLowerCase().includes(q)
+        (k.naam || "").toLowerCase().includes(q)
     );
 
     if (!list.length) {
