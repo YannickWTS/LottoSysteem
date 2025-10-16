@@ -4,6 +4,13 @@
 const qs  = (s) => document.querySelector(s);
 const qsa = (s) => [...document.querySelectorAll(s)];
 
+class ApiError extends Error {
+    constructor(status, message) {
+        super(message);
+        this.status = status;
+    }
+}
+
 async function apiFetch(url, options = {}) {
     const opts = {
         credentials: "include",
@@ -11,15 +18,17 @@ async function apiFetch(url, options = {}) {
         ...options
     };
     const res = await fetch(url, opts);
+
     if (!res.ok) {
         let msg = `HTTP ${res.status}`;
         try {
             const data = await res.json();
             if (data?.message) msg = data.message;
-            if (data?.error)   msg = data.error;
+            else if (data?.error) msg = data.error;
         } catch {}
-        throw new Error(msg);
+        throw new ApiError(res.status, msg);
     }
+
     if (res.status === 204) return null;
     const ct = res.headers.get("content-type") || "";
     return ct.includes("application/json") ? res.json() : res.text();
@@ -188,8 +197,13 @@ async function onSave(id) {
         setMsg(msg, "ok", "Opgeslagen.");
         setTimeout(() => { clearInline(qs(`#slot-${id}`)); render(); }, 120);
     } catch (err) {
-        setMsg(msg, "error", err.message || "Opslaan mislukt.");
+    if (err.status === 409) {
+        alert("E-mail bestaat al bij een andere klant.");
+    } else {
+        alert(err.message || "Opslaan mislukt.");
     }
+    setMsg(msg, "error", err.message || "Opslaan mislukt.");
+}
 }
 
 async function onDelete(id) {
@@ -246,6 +260,11 @@ async function onCreate() {
         clearInline(slot);
         render();
     } catch (err) {
+        if (err.status === 409) {
+            alert("E-mail bestaat al bij een andere klant.");
+        } else {
+            alert(err.message || "Toevoegen mislukt.");
+        }
         setMsg(msg, "error", err.message || "Toevoegen mislukt.");
     }
 }

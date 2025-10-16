@@ -99,4 +99,26 @@ public class KlantRepository {
                 .query(String.class)
                 .optional();
     }
+
+    public boolean existsByEmailIgnoreCase(String email) {
+        var sql = "select count(*) from klant where lower(email) = lower(?)";
+        return jdbcClient.sql(sql)
+                .param(email)
+                .query(Long.class)
+                .single() > 0;
+    }
+
+    public boolean existsByEmailIgnoreCaseExcludingId(String email, long excludeId) {
+        var sql = """
+        select count(*)
+        from klant
+        where lower(email) = lower(?)
+          and id <> ?
+    """;
+        return jdbcClient.sql(sql)
+                .params(email, excludeId)
+                .query(Long.class)
+                .single() > 0;
+    }
+
 }
