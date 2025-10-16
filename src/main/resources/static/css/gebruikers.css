@@ -156,9 +156,6 @@ button.danger {
 
 /* ===== Select (rol) – custom look ===== */
 select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
     padding: 10px 38px 10px 12px;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
@@ -270,6 +267,10 @@ details[open] summary {
     box-shadow: 0 1px 6px rgba(37, 99, 235, .14);
     cursor: pointer;
     user-select: none;
+}
+
+.action-link.act-betaal{
+    text-align: center;
 }
 
 .action-link.danger {
@@ -449,7 +450,11 @@ button[disabled] {
 /* --- Combobox (popover) --- */
 .combo {
     position: relative;
-    max-width: 420px;
+    max-width: 400px;
+}
+
+.speltype{
+    max-width: 390px;
 }
 
 .combo input {
@@ -479,4 +484,35 @@ button[disabled] {
     background: var(--accent-weak);
 }
 
+/* kaart houdt z’n vorm en afgeronde hoeken */
+.card {
+    overflow: hidden; /* voorkomt 'uit de box' bij kleine schermen */
+}
+
+/* horizontaal scrollbare tabel in de kaart */
+.table-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch; /* smooth op mobiel */
+    padding-bottom: 6px;               /* ruimte voor scrollbar */
+}
+
+/* zorg dat je kolommen niet in elkaar klappen;
+   pas de min-width aan jouw kolommen aan (900–1100px is vaak goed) */
+.table-scroll .t {
+    min-width: 1000px;
+}
+
+/* acties rechts houden en in één lijn */
+.t td.actions-cell .action-list {
+    flex-wrap: nowrap;
+}
+
+/* optioneel: sticky table header tijdens verticaal scrollen */
+.table-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
 

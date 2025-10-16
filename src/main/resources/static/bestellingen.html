@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="nl">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="utf-8"/>
     <title>Bestellingen</title>
-    <link rel="icon" href="/img/aIcon.ico" />
+    <link rel="icon" href="/img/aIcon.ico"/>
     <!-- zelfde stylesheet hergebruiken -->
-    <link rel="stylesheet" href="/css/gebruikers.css" />
+    <link rel="stylesheet" href="/css/gebruikers.css"/>
     <script src="/js/bestellingen.js" type="module"></script>
 </head>
 <body>
@@ -32,8 +32,8 @@
                     </label>
 
                     <label>Speltype
-                        <select name="spelType" id="selSpel" required>
-                            <option value="">— kies —</option>
+                        <select name="spelType" id="selSpel" class="speltype" required>
+                            <option value="">- kies -</option>
                             <option>Lotto</option>
                             <option>Lotto Extra</option>
                             <option>EuroMillions</option>
@@ -44,11 +44,11 @@
 
                 <div>
                     <label>Maand (nl-BE)
-                        <input type="text" id="inpMaand" name="maand" readonly>
+                        <input type="text" id="inpMaand" name="maand" readonly style="background-color: #a8a8a8;">
                     </label>
 
                     <label style="display:flex;align-items:center;gap:8px;">
-                        <input type="checkbox" id="chkBetaald" /> Betaald
+                        <input type="checkbox" id="chkBetaald"/> Betaald
                     </label>
 
                     <p id="formMsg" class="form-msg hidden" aria-live="polite"></p>
@@ -66,16 +66,23 @@
         <div class="adminHead">
             <h2>Overzicht bestellingen</h2>
         </div>
-
-        <table class="t">
-            <thead>
-            <tr>
-                <th>ID</th><th>Klant</th><th>Speltype</th><th>Maand</th>
-                <th>Datum</th><th>Betaald</th><th>Medewerker</th><th>Acties</th>
-            </tr>
-            </thead>
-            <tbody id="bestelTbody"></tbody>
-        </table>
+        <div class="table-scroll">
+            <table class="t">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Klant</th>
+                    <th>Speltype</th>
+                    <th>Maand</th>
+                    <th>Datum</th>
+                    <th>Betaald</th>
+                    <th>Medewerker</th>
+                    <th>Acties</th>
+                </tr>
+                </thead>
+                <tbody id="bestelTbody"></tbody>
+            </table>
+        </div>
     </section>
 </main>
 </body>

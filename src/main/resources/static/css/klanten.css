@@ -346,4 +346,33 @@ button.danger {
 }
 
 /* Voor de zekerheid: laat popover niet afkappen door de card */
-#adminBlok.card { overflow: visible; }
+#adminBlok.card {
+    overflow: hidden;
+}
+
+/* horizontale scroll in de kaart */
+.table-scroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;      /* ruimte voor scrollbar */
+}
+
+/* voorkom dat kolommen inklappen: pas breedte aan naar wens */
+.table-scroll .t {
+    min-width: 900px;         /* bv. 900–1100px afhankelijk van je kolommen */
+}
+
+/* acties rechts blijven staan, zonder wrap */
+.t td.actions-cell .action-list {
+    margin-left: auto;
+    flex-wrap: nowrap;
+}
+
+/* (optioneel) sticky header bij verticaal scrollen van lange lijsten */
+.table-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
