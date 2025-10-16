@@ -121,8 +121,8 @@ public class GebruikerController {
         }
     }
 
-    // be/wts/lottosysteem_Ali/controller/GebruikerController.java
     @PutMapping("mijn-naam")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> updateMijnGebruikersnaam(
             @RequestBody UpdateUsernameRequest request,
             Authentication authentication,

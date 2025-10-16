@@ -10,7 +10,7 @@
 <body>
 <main class="wrap">
     <div class="top">
-        <h1>Klanten</h1>
+        <h1>Gebruikers</h1>
         <div class="action-list">
             <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
             <button id="btnLogout">Afmelden</button>
@@ -20,7 +20,27 @@
     <!-- Eigen wachtwoord wijzigen (zichtbaar voor iedereen) -->
     <section class="card">
         <div class="grid-2">
-            <!-- LINKS: wachtwoord -->
+            <!-- profiel -->
+            <div>
+                <h2>Mijn profiel</h2>
+                <form id="formProfiel">
+                    <label>ID
+                        <input type="text" name="id" readonly style="background-color: #a8a8a8;">
+                    </label>
+                    <label>Gebruikersnaam
+                        <input type="text" name="gebruikersnaam" required minlength="2" maxlength="60">
+                    </label>
+                    <label>Rol
+                        <input type="text" name="rol" readonly style="background-color: #a8a8a8;">
+                    </label>
+                    <p id="profielFeedback" class="form-msg hidden" aria-live="polite"></p>
+                    <div class="form-actions">
+                        <button type="submit">Gebruikersnaam opslaan</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- wachtwoord -->
             <div>
                 <h2>Mijn wachtwoord wijzigen</h2>
                 <form id="formWachtwoord">
@@ -33,26 +53,6 @@
                     <p id="pwFeedback" class="form-msg hidden" aria-live="polite"></p>
                     <div class="form-actions">
                         <button type="submit">Wachtwoord opslaan</button>
-                    </div>
-                </form>
-            </div>
-
-            <!-- RECHTS: profiel -->
-            <div>
-                <h2>Mijn profiel</h2>
-                <form id="formProfiel">
-                    <label>ID
-                        <input type="text" name="id" readonly>
-                    </label>
-                    <label>Gebruikersnaam
-                        <input type="text" name="gebruikersnaam" required minlength="2" maxlength="60">
-                    </label>
-                    <label>Rol
-                        <input type="text" name="rol" readonly>
-                    </label>
-                    <p id="profielFeedback" class="form-msg hidden" aria-live="polite"></p>
-                    <div class="form-actions">
-                        <button type="submit">Gebruikersnaam opslaan</button>
                     </div>
                 </form>
             </div>

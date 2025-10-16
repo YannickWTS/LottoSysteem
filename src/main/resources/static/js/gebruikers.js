@@ -479,7 +479,7 @@ document.addEventListener("click", async (e) => {
         if (!slot) return;
 
         openPopover(slot, "create", `
-      <div class="popover" ;">
+      <div class="popover"">
         <div class="row" style="grid-template-columns: 120px 1fr;">
           <label>Gebruikersnaam</label>
           <input type="text" class="nu-name" placeholder="bv. jan" />
