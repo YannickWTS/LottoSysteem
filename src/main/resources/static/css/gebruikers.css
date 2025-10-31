@@ -269,7 +269,7 @@ details[open] summary {
     user-select: none;
 }
 
-.action-link.act-betaal{
+.action-link.act-betaal {
     text-align: center;
 }
 
@@ -338,8 +338,9 @@ button[disabled] {
     display: flex;
     align-items: center;
 }
+
 .t td.actions-cell .action-list {
-    margin-left: auto;         /* duwt naar rechts */
+    margin-left: auto; /* duwt naar rechts */
     display: flex;
     gap: 10px;
     align-items: center;
@@ -453,7 +454,7 @@ button[disabled] {
     max-width: 400px;
 }
 
-.speltype{
+.speltype {
     max-width: 390px;
 }
 
@@ -494,7 +495,7 @@ button[disabled] {
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch; /* smooth op mobiel */
-    padding-bottom: 6px;               /* ruimte voor scrollbar */
+    padding-bottom: 6px; /* ruimte voor scrollbar */
 }
 
 /* zorg dat je kolommen niet in elkaar klappen;
@@ -516,3 +517,41 @@ button[disabled] {
     z-index: 1;
 }
 
+
+th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+th.sortable .sort {
+    display: inline-block;
+    min-width: 1ch;
+    margin-left: 6px;
+    color: #636363;
+    font-weight: 800; /* mag je eigen kleur zijn */
+}
+
+.filter{
+    color: black;
+}
+
+/* Zorg dat secties/cards de popover niet clippen (mag, maar is niet genoeg zonder portal) */
+.section, .card { overflow: visible; }
+
+/* Portal + popover */
+.popover-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;            /* hoog boven de page UI */
+}
+
+.popover {
+    position: fixed;          /* t.o.v. viewport, geen scroll-issues */
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 14px;
+    box-shadow: 0 12px 32px rgba(0,0,0,.14);
+    padding: 16px;
+    max-width: 420px;
+    min-width: 320px;         /* voelt als een klein paneel */
+}

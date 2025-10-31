@@ -40,6 +40,22 @@ function fmtLocalDateToNl(d) {
     return `${day}/${m}/${y}`;
 }
 
+const NL_MONTHS = [
+    "januari","februari","maart","april","mei","juni",
+    "juli","augustus","september","oktober","november","december"
+];
+function maandKey(str){
+    if(!str) return 0;
+    const [mnaam, j] = String(str).trim().split(/\s+/);
+    const y = Number(j||0);
+    const m = NL_MONTHS.indexOf((mnaam||"").toLowerCase()) + 1;
+    return y*100 + (m||0); // 202510 etc.
+}
+function cmpStr(a,b){ return String(a||"").localeCompare(String(b||""),"nl",{sensitivity:"base"}); }
+function cmpNum(a,b){ return (Number(a)||0) - (Number(b)||0); }
+function cmpBool(a,b){ return (a===b)?0:(a?1:-1); } // Nee < Ja
+
+
 /* ============================================================================
  * UI refs
  * ==========================================================================*/
@@ -48,6 +64,7 @@ const selSpel = qs("#selSpel");
 const inpMaand = qs("#inpMaand");
 const chkBetaald = qs("#chkBetaald");
 const btnOpslaan = qs("#btnOpslaan");
+const btnLogout  = qs("#btnLogout");
 const formMsg = qs("#formMsg");
 const tbody = qs("#bestelTbody");
 
@@ -58,6 +75,8 @@ const klantList = qs("#klantList");
 /* ============================================================================
  * State
  * ==========================================================================*/
+let bestellingen = [];                 // ruwe lijst uit de API (verrijkt)
+let sortState = { col: null, dir: 0 }; // 0 = normaal, 1 = asc, -1 = desc
 let klantenCache = [];        // [{id, label, naam}, ...]
 let klantenMap = {};          // id -> naam
 let selectedKlantId = 0;
@@ -69,6 +88,15 @@ const medewerkerCache = new Map(); // id -> gebruikersnaam (lazy geladen)
  * ==========================================================================*/
 qs("#btnRefresh")?.addEventListener("click", loadBestellingen);
 qs("#btnTerug")?.addEventListener("click", () => (location.href = "welkom.html"));
+
+if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+        const ok = window.confirm("Afmelden en terug naar login?");
+        if (!ok) return;
+        try { await apiFetch("/auth/logout", { method: "POST" }); }
+        finally { location.href = "index.html"; }
+    });
+}
 
 // Maand automatisch invullen + readOnly
 inpMaand.value = monthNameNlBE();
@@ -222,42 +250,81 @@ async function getMedewerkerNaam(medewerkerId) {
  * ==========================================================================*/
 async function loadBestellingen() {
     const r = await api("/bestelling");
-    if (r.status === 401) {
-        location.href = "/index.html";
-        return;
-    }
+    if (r.status === 401) { location.href = "/index.html"; return; }
     const lijst = await r.json();
 
-    tbody.innerHTML = "";
-
-    for (const b of lijst) {
-        const tr = document.createElement("tr");
-
+    bestellingen = lijst.map((b, i) => {
         const klantNaam = b.klantNaam || klantenMap[b.klantId] || `#${b.klantId}`;
         const medewerkerNaam = b.medewerkerNaam || (b.medewerkerId ? `#${b.medewerkerId}` : "-");
+        return {
+            __idx: i,                 // originele positie (voor "normaal")
+            id: b.id,
+            klantNaam,
+            spelType: b.spelType,
+            maand: b.maand,
+            maandKey: maandKey(b.maand),
+            datumIso: String(b.datumRegistratie), // "YYYY-MM-DD"
+            betaald: !!b.betaald,
+            medewerkerNaam,
+            raw: b                    // originele record voor acties
+        };
+    });
 
-        const acties = [];
-        if (!b.betaald) {
-            acties.push(`<span class="action-link act-betaal" data-id="${b.id}">Markeer betaald</span>`);
-        }
-        if (isAdmin()) {
-            acties.push(`<span class="action-link danger act-del" data-id="${b.id}">Verwijder</span>`);
-        }
+    renderBestellingen();
+}
 
-        tr.innerHTML = `
-    <td>${b.id}</td>
-    <td>${klantNaam}</td>
-    <td>${b.spelType}</td>
-    <td>${b.maand}</td>
-    <td>${fmtLocalDateToNl(String(b.datumRegistratie))}</td>
-    <td>${b.betaald ? "Ja" : "Nee"}</td>
-    <td>${medewerkerNaam}</td>
-    <td class="actions-cell"><div class="action-list">${acties.join("") || "-"}</div></td>
-  `;
-        tbody.appendChild(tr);
+function renderBestellingen(){
+    const rows = [...bestellingen];
+
+    if (sortState.dir !== 0 && sortState.col) {
+        const dir = sortState.dir;
+        rows.sort((a,b)=>{
+            let c = 0;
+            switch (sortState.col) {
+                case "id":         c = cmpNum(a.id, b.id); break;
+                case "klant":      c = cmpStr(a.klantNaam, b.klantNaam); break;
+                case "spel":       c = cmpStr(a.spelType, b.spelType); break;
+                case "maand":      c = cmpNum(a.maandKey, b.maandKey); break;
+                case "datum":      c = cmpStr(a.datumIso, b.datumIso); break; // ISO asc
+                case "betaald":    c = cmpBool(a.betaald, b.betaald); break;  // Nee→Ja
+                case "medewerker": c = cmpStr(a.medewerkerNaam, b.medewerkerNaam); break;
+            }
+            return dir*c || cmpNum(a.__idx, b.__idx); // stabiel
+        });
+    } else {
+        rows.sort((a,b)=>cmpNum(a.__idx,b.__idx)); // normaal
     }
 
+    // pijltje in header updaten
+    document.querySelectorAll("th.sortable .sort").forEach(s => s.textContent = "");
+    if (sortState.col && sortState.dir) {
+        const el = document.querySelector(`th.sortable[data-col="${sortState.col}"] .sort`);
+        if (el) el.textContent = sortState.dir > 0 ? "▲" : "▼";
+    }
+
+    // tbody vullen
+    tbody.innerHTML = "";
+    for (const r of rows) {
+        const b = r.raw;
+        const acties = [];
+        if (!b.betaald) acties.push(`<span class="action-link act-betaal" data-id="${b.id}">Markeer betaald</span>`);
+        if (isAdmin())  acties.push(`<span class="action-link danger act-del" data-id="${b.id}">Verwijder</span>`);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+      <td>${r.id}</td>
+      <td>${r.klantNaam}</td>
+      <td>${r.spelType}</td>
+      <td>${r.maand}</td>
+      <td>${fmtLocalDateToNl(r.datumIso)}</td>
+      <td>${r.betaald ? "Ja" : "Nee"}</td>
+      <td>${r.medewerkerNaam}</td>
+      <td class="actions-cell"><div class="action-list">${acties.join("") || "-"}</div></td>
+    `;
+        tbody.appendChild(tr);
+    }
 }
+
 
 /* ============================================================================
  * Tabel-acties
@@ -343,6 +410,21 @@ form.addEventListener("submit", async (e) => {
  * ==========================================================================*/
 await loadKlanten();
 await loadBestellingen();
+
+document.querySelectorAll("th.sortable").forEach(th=>{
+    th.addEventListener("click", ()=>{
+        const col = th.dataset.col;
+        if (!col) return;
+        if (sortState.col !== col) {
+            sortState = { col, dir: 1 };               // start met asc
+        } else {
+            sortState.dir = sortState.dir === 1 ? -1   // asc → desc
+                : sortState.dir === -1 ? 0   // desc → normaal
+                    : 1;                         // normaal → asc
+        }
+        renderBestellingen();
+    });
+});
 
 // Suggest actuele maand bij openen (extra zekerheid)
 if (!inpMaand.value) inpMaand.value = monthNameNlBE();

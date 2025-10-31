@@ -7,6 +7,7 @@
 function qs(selector) {
     return document.querySelector(selector);
 }
+const btnLogout  = qs("#btnLogout");
 
 async function apiFetch(url, options = {}) {
     // Zorg dat cookies/sessie meegaan
@@ -46,6 +47,15 @@ function setMsg(el, type, text) {
 const backButton = qs("#btnTerug");
 if (backButton) {
     backButton.addEventListener("click", () => (window.location.href = "/welkom.html"));
+}
+
+if (btnLogout) {
+    btnLogout.addEventListener("click", async () => {
+        const ok = window.confirm("Afmelden en terug naar login?");
+        if (!ok) return;
+        try { await apiFetch("/auth/logout", { method: "POST" }); }
+        finally { location.href = "index.html"; }
+    });
 }
 
 /* ============================================================================
