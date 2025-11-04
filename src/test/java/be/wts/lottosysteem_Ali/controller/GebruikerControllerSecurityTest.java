@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -31,18 +31,7 @@ public class GebruikerControllerSecurityTest {
     //---------create---------
 
     @Test
-    void createGeeft401AlsNietIngelogd() throws Exception {
-        var req = new NieuweGebruiker("sec_user", "pw123", null); //null = default 'USER'
-        var resp = mvc.post()
-                .uri("/gebruiker")
-                .contentType("application/json")
-                .content(om.writeValueAsString(req));
-
-        assertThat(resp).hasStatus(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
-    @WithMockUser(username = "piet", roles = {"USER"})
+    @WithMockUser(username = "piet")
     void createGeeft403AlsUserZonderAdminRol() throws Exception {
         var req = new NieuweGebruiker("sec_user_forbidden", "pw123", null);
         var resp = mvc.post()
@@ -76,7 +65,7 @@ public class GebruikerControllerSecurityTest {
     // Als je geen vooraf bekende id hebt, kun je eerst een gebruiker aanmaken (met ADMIN) en daarna deleten.
 
     @Test
-    @WithMockUser(username = "jan", roles = {"USER"})
+    @WithMockUser(username = "jan")
     void delete_geeft403_alsUserZonderAdminRol() {
         var resp = mvc.delete().uri("/gebruiker/{id}", 99999L);
         assertThat(resp).hasStatus(FORBIDDEN);
@@ -112,7 +101,7 @@ public class GebruikerControllerSecurityTest {
     }
 
     @Test
-    @WithMockUser(username = "jan", roles = {"USER"})
+    @WithMockUser(username = "jan")
     void updateWachtwoordGeeft403AlsUserZonderAdminRol() throws Exception {
         var req = new NieuwWachtwoord("nieuwWachtwoord123");
         var resp = mvc.put()

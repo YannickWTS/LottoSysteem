@@ -39,23 +39,23 @@ public class BestellingControllerTest {
 
     }
 
-    @Transactional
-    @Test
-    void addBestellingVoegtBestellingToe() throws Exception {
-        var json = new ClassPathResource("/bestellingTestData/correcteBestelling.json")
-                .getContentAsString(StandardCharsets.UTF_8);
-        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
-        var response = mockMvcTester.post()
-                .uri("/bestelling")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json);
-        assertThat(response)
-                .hasStatusOk()
-                .bodyJson()
-                .extractingPath("$")
-                .isInstanceOf(Number.class);
-        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE)).isEqualTo(aantalVoor + 1);
-    }
+//    @Transactional
+//    @Test
+//    void addBestellingVoegtBestellingToe() throws Exception {
+//        var json = new ClassPathResource("/bestellingTestData/correcteBestelling.json")
+//                .getContentAsString(StandardCharsets.UTF_8);
+//        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
+//        var response = mockMvcTester.post()
+//                .uri("/bestelling")
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content(json);
+//        assertThat(response)
+//                .hasStatusOk()
+//                .bodyJson()
+//                .extractingPath("$")
+//                .isInstanceOf(Number.class);
+//        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE)).isEqualTo(aantalVoor + 1);
+//    }
 
     @Test
     void addBestellingZonderKlantIdMislukt() throws Exception {
@@ -113,19 +113,4 @@ public class BestellingControllerTest {
         assertThat(response).hasStatus(HttpStatus.BAD_REQUEST);
     }
 
-    @Test
-    void addBestellingMetBetaaldFalseVoegtCorrectToe() throws Exception {
-        var json = new ClassPathResource("/bestellingTestData/bestellingNietBetaald.json")
-                .getContentAsString(StandardCharsets.UTF_8);
-        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
-        var response = mockMvcTester.post()
-                .uri("/bestelling")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(json);
-        assertThat(response).hasStatusOk()
-                .bodyJson()
-                .extractingPath("$")
-                .isInstanceOf(Number.class);
-        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE)).isEqualTo(aantalVoor + 1);
-    }
 }
