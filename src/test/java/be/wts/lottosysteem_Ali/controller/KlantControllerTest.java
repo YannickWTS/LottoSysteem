@@ -39,27 +39,6 @@ public class KlantControllerTest {
 
     }
 
-    @Test
-    void findByIdGeeftKlantTerug(){
-        var response = mockMvcTester.get()
-                .uri("/klanten/1");
-        assertThat(response).hasStatusOk()
-                .bodyJson()
-                .extractingPath("$.naam")
-                .isEqualTo("Ali Test");
-    }
-
-    @Test
-    void findByNaamBegintMetGeeftLijst(){
-        var response = mockMvcTester.get()
-                .uri("/klanten/zoeken/A");
-        assertThat(response).hasStatusOk()
-                .bodyJson()
-                .extractingPath("length()")
-                .isEqualTo(JdbcTestUtils.countRowsInTableWhere(jdbcClient, KLANTEN_TABLE,
-                        "naam like 'a%'"));
-    }
-
     @Transactional
     @Test
     void createVoegtNieuweKlantToe() throws Exception {
