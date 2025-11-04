@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Betaalbewijs</title>
+    <link rel="stylesheet" href="css/bon.css">
+    <link rel="icon" href="img/aIcon.ico" type="image/x-icon">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+<div id="bon" class="bon bon--with-sidebar"><!-- of: bon--with-footer -->
+    <header class="bon__header">
+        <h1>Groepsspel betaalbewijs</h1>
+        <div class="meta">
+            <div><span class="k">Klant</span><span class="v" id="klantNaam">—</span></div>
+            <div><span class="k">Maand</span><span class="v" id="maand">—</span></div>
+            <div><span class="k">Medewerker</span><span class="v" id="medewerkerNaam">—</span></div>
+        </div>
+    </header>
+
+    <main class="bon__main">
+        <div class="lijn">
+            <span class="label u">Lotto:</span>
+            <span class="value" id="lottoBedrag">—</span>
+        </div>
+        <div class="lijn">
+            <span class="label u">Euro millions:</span>
+            <span class="value" id="euroBedrag">—</span>
+        </div>
+
+        <div class="totaal">
+            <span class="label">Totaal</span>
+            <span class="dots">................................</span>
+            <span class="value" id="totaalBedrag">—</span>
+            <span>betaald.</span>
+        </div>
+
+        <div class="datum">
+            <span class="k">Datum</span>
+            <span class="v" id="datum">—</span>
+        </div>
+    </main>
+
+    <!-- Variant A: rechter zijbalk (zoals stempel rechts) -->
+<!--    <aside class="stempel stempel&#45;&#45;sidebar">-->
+<!--        <div class="stempel__wrap">-->
+<!--            <strong>PRESS SHOP ZELE 2374</strong><br/>-->
+<!--            Kouterstraat 98A<br/>-->
+<!--            9240 — Zele<br/>-->
+<!--            Tel. 052/44.51.99-->
+<!--        </div>-->
+<!--    </aside>-->
+
+    <!-- Variant B: blok rechtsonder (als je sidebar te smal vindt) -->
+    <aside class="stempel stempel--footer">
+        <div class="stempel__wrap">
+            <strong>PRESS SHOP ZELE 2374</strong> — Kouterstraat 98A, 9240 Zele — Tel. 052/44.51.99
+        </div>
+    </aside>
+
+    <div class="cut">— — — — — — — — — — — — — — — — — — — —</div>
+</div>
+
+<script src="/js/bon.js"></script>
+</body>
+</html>

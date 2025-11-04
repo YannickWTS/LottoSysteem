@@ -1,0 +1,81 @@
+/* ===== Printer setup =====
+ * Pas breedte aan jouw rol: TSP100 is meestal 80mm.
+ * Voor 58mm: zet .bon max-width naar 58mm en @page size naar 58mm.
+ */
+@page {
+    size: 80mm;         /* of 58mm auto */
+    margin: 0;
+}
+@media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* Basis */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font: 12px/1.25 "Segoe UI", system-ui, sans-serif; color: #000; }
+
+/* Bon container */
+.bon {
+    position: relative;
+    margin: 0 auto;
+    padding: 8mm 6mm;         /* nette witruimte */
+    max-width: 72mm;          /* 80mm rol -> ~72mm printable */
+    background: #fff;
+}
+
+/* Header */
+.bon__header h1 {
+    font-size: 15px;
+    margin: 0 0 6px 0;
+}
+.meta .k { opacity: .8; margin-right: 6px; display: inline-block; min-width: 42px; }
+.meta .v { font-weight: 600; }
+
+/* Inhoud */
+.bon__main { margin-top: 8px; }
+.lijn { display: flex; justify-content: space-between; gap: 6px; margin: 6px 0; }
+.lijn .u { text-decoration: underline; }
+.totaal {
+    display: flex; align-items: baseline; gap: 6px; margin: 10px 0 6px;
+    font-weight: 600;
+}
+.totaal .dots { flex: 1; overflow: hidden; white-space: nowrap; }
+.datum { margin-top: 8px; }
+.datum .k { font-weight: 600; margin-right: 6px; }
+
+/* Stempel – kies één variant via bon--with-sidebar of bon--with-footer */
+.stempel { color: #000; }
+.stempel__wrap { border: 1px solid #000; padding: 6px; }
+
+/* Variant A: zijbalk rechts (visueel “stempel aan de rand”) */
+.bon--with-sidebar .stempel--sidebar {
+    position: absolute;
+    top: 6mm; right: -2mm; bottom: 6mm; width: 24mm; /* smalle kolom rechts */
+    display: flex; align-items: center; justify-content: center;
+    transform: rotate(90deg);                         /* optioneel: stempel “liggend” */
+    transform-origin: right top;
+}
+.bon--with-sidebar .stempel--footer { display: none; }
+
+/* Variant B: blok rechtsonder */
+.bon--with-footer .stempel--sidebar { display: none; }
+.bon--with-footer .stempel--footer {
+    margin-top: 10px;
+    display: block;
+    text-align: right;
+}
+
+/* Scheurlijn */
+.cut {
+    text-align: center;
+    margin-top: 8px;
+    font-family: monospace;
+    opacity: .8;
+}
+
+/* Schermvoorbeeld iets groter */
+@media screen {
+    body { background: #f4f6fb; }
+    .bon { box-shadow: 0 6px 24px rgba(0,0,0,.12); margin: 16px auto; }
+}
