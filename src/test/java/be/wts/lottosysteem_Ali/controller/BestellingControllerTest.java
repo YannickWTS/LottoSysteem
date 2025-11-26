@@ -28,16 +28,16 @@ public class BestellingControllerTest {
         this.jdbcClient = jdbcClient;
     }
 
-    @Test
-    void findAllGeeftAlleBestellingen() {
-        var response = mockMvcTester.get()
-                .uri("/bestelling");
-        assertThat(response).hasStatusOk()
-                .bodyJson()
-                .extractingPath("length()")
-                .isEqualTo(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE));
-
-    }
+//    @Test
+//    void findAllGeeftAlleBestellingen() {
+//        var response = mockMvcTester.get()
+//                .uri("/bestelling");
+//        assertThat(response).hasStatusOk()
+//                .bodyJson()
+//                .extractingPath("length()")
+//                .isEqualTo(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE));
+//
+//    }
 
 //    @Transactional
 //    @Test

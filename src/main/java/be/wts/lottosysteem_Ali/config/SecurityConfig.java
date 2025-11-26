@@ -1,23 +1,16 @@
 package be.wts.lottosysteem_Ali.config;
 
-import be.wts.lottosysteem_Ali.repository.GebruikerRepository;
 import be.wts.lottosysteem_Ali.service.CustomUserDetailsService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -36,9 +29,22 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                // H2-console gebruikt frames → sameOrigin toelaten
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/", "/index.html", "/css/**", "/js/**", "/data/**", "/auth/login", "/img/**").permitAll()
+                        // statische bestanden + login-endpoint
+                        .requestMatchers("/", "/index.html", "/css/**", "/js/**",
+                                "/data/**", "/auth/login", "/img/**").permitAll()
+
+                        // jouw HTML-pagina's (frontend)
                         .requestMatchers("/index.html", "/welkom.html", "/gebruikers.html").permitAll()
+
+                        // H2-console volledig toelaten (DEV)
+                        .requestMatchers("/h2-console/**").permitAll()
+
+                        // rest enkel ingelogd
                         .requestMatchers("/gebruiker/**").authenticated()
                         .requestMatchers("/bestelling/**").authenticated()
                         .requestMatchers("/klanten/**").authenticated()
@@ -47,14 +53,18 @@ public class SecurityConfig {
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .logout(logout -> logout
                         .logoutUrl("/auth/logout")
-                        .logoutSuccessHandler((req, resp, auth) -> resp.setStatus(HttpServletResponse.SC_OK))
+                        .logoutSuccessHandler((req, resp, auth) ->
+                                resp.setStatus(HttpServletResponse.SC_OK))
                 );
+
         return http.build();
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(CustomUserDetailsService uds,
-                                                            PasswordEncoder encoder) {
+    public DaoAuthenticationProvider authenticationProvider(
+            CustomUserDetailsService uds,
+            PasswordEncoder encoder
+    ) {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
         provider.setUserDetailsService(uds);
         provider.setPasswordEncoder(encoder);
