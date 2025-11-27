@@ -1,6 +1,5 @@
 package be.wts.lottosysteem_Ali.model;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Bestelling {
@@ -8,12 +7,12 @@ public class Bestelling {
     private final Klant klant;
     private final String spelType;
     private final String maand;
-    private final LocalDate datumRegistratie;
+    private final LocalDateTime datumRegistratie;
     private final boolean betaald;
     private final long medewerkerId;
     private final LocalDateTime laatsteUpdate;
 
-    public Bestelling(long id, Klant klant, String spelType, String maand, LocalDate datumRegistratie, boolean betaald, long medewerkerId, LocalDateTime laatsteUpdate) {
+    public Bestelling(long id, Klant klant, String spelType, String maand, LocalDateTime datumRegistratie, boolean betaald, long medewerkerId, LocalDateTime laatsteUpdate) {
         this.id = id;
         this.klant = klant;
         this.spelType = spelType;
@@ -24,7 +23,7 @@ public class Bestelling {
         this.laatsteUpdate = laatsteUpdate;
     }
 
-    public Bestelling(Klant klant, String spelType, String maand, LocalDate datumRegistratie, boolean betaald, long medewerkerId) {
+    public Bestelling(Klant klant, String spelType, String maand, LocalDateTime datumRegistratie, boolean betaald, long medewerkerId) {
         this(0L, klant, spelType, maand, datumRegistratie, betaald, medewerkerId, null);
     }
 
@@ -44,7 +43,7 @@ public class Bestelling {
         return maand;
     }
 
-    public LocalDate getDatumRegistratie() {
+    public LocalDateTime getDatumRegistratie() {
         return datumRegistratie;
     }
 

@@ -11,7 +11,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -57,7 +57,7 @@ public class BestellingService {
                 new Klant(dto.klantId()),
                 dto.spelType(),
                 dto.maand(),
-                LocalDate.now(),
+                LocalDateTime.now(),
                 betaald,
                 gebruiker.getId()
         );

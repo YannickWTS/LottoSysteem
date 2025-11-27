@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Repository
 public class BestellingRepository {
@@ -24,17 +25,23 @@ public class BestellingRepository {
                 from bestelling
                 order by id
                 """;
+
         return jdbcClient.sql(sql)
-                .query((rs, rowNum) -> new Bestelling(
-                        rs.getLong("id"),
-                        new Klant(rs.getLong("klant_id")),
-                        rs.getString("speltype"),
-                        rs.getString("maand"),
-                        rs.getDate("datum_registratie").toLocalDate(),
-                        rs.getBoolean("betaald"),
-                        rs.getLong("medewerker_id"),
-                        rs.getTimestamp("laatste_update").toLocalDateTime()
-                ))
+                .query((rs, rowNum) -> {
+                    Timestamp datumTs = rs.getTimestamp("datum_registratie");
+                    Timestamp laatsteTs = rs.getTimestamp("laatste_update");
+
+                    return new Bestelling(
+                            rs.getLong("id"),
+                            new Klant(rs.getLong("klant_id")),
+                            rs.getString("speltype"),
+                            rs.getString("maand"),
+                            datumTs.toLocalDateTime(), // datum + tijd van bestelling
+                            rs.getBoolean("betaald"),
+                            rs.getLong("medewerker_id"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
+                    );
+                })
                 .list();
     }
 
@@ -51,13 +58,13 @@ public class BestellingRepository {
                         bestelling.getKlant().getId(),
                         bestelling.getSpelType(),
                         bestelling.getMaand(),
-                        bestelling.getDatumRegistratie(),
+                        Timestamp.valueOf(bestelling.getDatumRegistratie()), // ⬅️ LocalDateTime → Timestamp
                         bestelling.isBetaald(),
                         bestelling.getMedewerkerId()
                 )
                 .update(keyHolder);
 
-        return keyHolder.getKey().longValue();
+        return Objects.requireNonNull(keyHolder.getKey()).longValue();
     }
 
     public int updateBetaald(long id, boolean betaald, long bewerkerId) {
@@ -72,7 +79,6 @@ public class BestellingRepository {
                 .params(betaald, Timestamp.valueOf(LocalDateTime.now()), bewerkerId, id)
                 .update(); // geeft # rows terug
     }
-
 
     public void delete(long id) {
         var sql = """

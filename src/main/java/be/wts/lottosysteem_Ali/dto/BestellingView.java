@@ -1,6 +1,5 @@
 package be.wts.lottosysteem_Ali.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public record BestellingView(
@@ -9,7 +8,7 @@ public record BestellingView(
         String klantNaam,
         String spelType,
         String maand,
-        LocalDate datumRegistratie,
+        LocalDateTime datumRegistratie,
         boolean betaald,
         long medewerkerId,
         String medewerkerNaam,
