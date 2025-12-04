@@ -3,7 +3,7 @@
 Een lokaal kassabeheersysteem voor het registreren van bestellingen voor Lotto- en EuroMillions-spelen.  
 Dit project is speciaal gebouwd voor een zelfstandige verkoper en draait volledig offline.
 
-⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 10–20% voltooid).  
+⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 80-90% voltooid).  
 Na afronding van mijn opleiding zal dit verder worden afgewerkt en uitgebreid.
 
 ---
@@ -59,8 +59,8 @@ Deze webapplicatie helpt hem om:
 
 ## 👨‍💻 Ontwikkelaar
 
-**Yannick Waterschoot**  
-Opleiding: Java Full Stack Developer (VDAB, 2024–2025)  
+**Yannick Tackaert**  
+Java Full Stack Developer (VDAB, 2024–2025)  
 [GitHub](https://github.com/YannickWTS) | [Portfolio](https://yannickwts.github.io/Portfolio)
 
 ---
