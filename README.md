@@ -3,7 +3,7 @@
 Een lokaal kassabeheersysteem voor het registreren van bestellingen voor Lotto- en EuroMillions-spelen.  
 Dit project is speciaal gebouwd voor een zelfstandige verkoper en draait volledig offline.
 
-⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 10–20% voltooid).  
+⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 80-90% voltooid).  
 Na afronding van mijn opleiding zal dit verder worden afgewerkt en uitgebreid.
 
 ---
