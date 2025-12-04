@@ -59,8 +59,8 @@ Deze webapplicatie helpt hem om:
 
 ## 👨‍💻 Ontwikkelaar
 
-**Yannick Waterschoot**  
-Opleiding: Java Full Stack Developer (VDAB, 2024–2025)  
+**Yannick Tackaert**  
+Java Full Stack Developer (VDAB, 2024–2025)  
 [GitHub](https://github.com/YannickWTS) | [Portfolio](https://yannickwts.github.io/Portfolio)
 
 ---
