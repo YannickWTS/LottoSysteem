@@ -33,27 +33,60 @@ function monthNameNlBE(date = new Date()) {
         .toLowerCase();
 }
 
-// Format "YYYY-MM-DD" -> "DD/MM/YYYY" (veilig i.v.m. timezone)
-function fmtLocalDateToNl(d) {
+// Vul de maand-select met huidige maand + 2 volgende maanden
+function buildMaandOptions() {
+    if (!inpMaand) return;
+    const now = new Date();
+    inpMaand.innerHTML = "";
+
+    for (let i = 0; i < 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const label = monthNameNlBE(d); // bv "november 2025"
+
+        const opt = document.createElement("option");
+        opt.value = label;
+        opt.textContent = label;
+        if (i === 0) opt.selected = true; // standaard = huidige maand
+
+        inpMaand.appendChild(opt);
+    }
+}
+
+
+// Format ISO LocalDateTime -> "DD/MM/YYYY HH:MM" (nl-BE, zonder seconden)
+function fmtLocalDateTimeToNl(d) {
     if (!d) return "";
-    const [y, m, day] = String(d).split("-");
-    return `${day}/${m}/${y}`;
+    const dt = new Date(d);
+
+    // fallback als parsing faalt (zou normaal niet gebeuren)
+    if (Number.isNaN(dt.getTime())) return String(d);
+
+    return dt.toLocaleString("nl-BE", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+        // seconds en ms niet tonen
+    });
 }
 
 const NL_MONTHS = [
-    "januari","februari","maart","april","mei","juni",
-    "juli","augustus","september","oktober","november","december"
+    "januari", "februari", "maart", "april", "mei", "juni",
+    "juli", "augustus", "september", "oktober", "november", "december"
 ];
-function maandKey(str){
-    if(!str) return 0;
+
+function maandKey(str) {
+    if (!str) return 0;
     const [mnaam, j] = String(str).trim().split(/\s+/);
-    const y = Number(j||0);
-    const m = NL_MONTHS.indexOf((mnaam||"").toLowerCase()) + 1;
-    return y*100 + (m||0); // 202510 etc.
+    const y = Number(j || 0);
+    const m = NL_MONTHS.indexOf((mnaam || "").toLowerCase()) + 1;
+    return y * 100 + (m || 0); // 202510 etc.
 }
-function cmpStr(a,b){ return String(a||"").localeCompare(String(b||""),"nl",{sensitivity:"base"}); }
-function cmpNum(a,b){ return (Number(a)||0) - (Number(b)||0); }
-function cmpBool(a,b){ return (a===b)?0:(a?1:-1); } // Nee < Ja
+
+function cmpStr(a, b) { return String(a || "").localeCompare(String(b || ""), "nl", { sensitivity: "base" }); }
+function cmpNum(a, b) { return (Number(a) || 0) - (Number(b) || 0); }
+function cmpBool(a, b) { return (a === b) ? 0 : (a ? 1 : -1); } // Nee < Ja
 
 
 /* ============================================================================
@@ -64,7 +97,7 @@ const selSpel = qs("#selSpel");
 const inpMaand = qs("#inpMaand");
 const chkBetaald = qs("#chkBetaald");
 const btnOpslaan = qs("#btnOpslaan");
-const btnLogout  = qs("#btnLogout");
+const btnLogout = qs("#btnLogout");
 const formMsg = qs("#formMsg");
 const tbody = qs("#bestelTbody");
 
@@ -77,8 +110,8 @@ const klantList = qs("#klantList");
  * ==========================================================================*/
 let bestellingen = [];                 // ruwe lijst uit de API (verrijkt)
 let sortState = { col: null, dir: 0 }; // 0 = normaal, 1 = asc, -1 = desc
-let klantenCache = [];        // [{id, label, naam}, ...]
-let klantenMap = {};          // id -> naam
+let klantenCache = [];                 // [{id, label, naam}, ...]
+let klantenMap = {};                   // id -> naam
 let selectedKlantId = 0;
 
 const medewerkerCache = new Map(); // id -> gebruikersnaam (lazy geladen)
@@ -93,19 +126,22 @@ if (btnLogout) {
     btnLogout.addEventListener("click", async () => {
         const ok = window.confirm("Afmelden en terug naar login?");
         if (!ok) return;
-        try { await apiFetch("/auth/logout", { method: "POST" }); }
-        finally { location.href = "index.html"; }
+        try {
+            await api("/auth/logout", { method: "POST" });
+        } finally {
+            location.href = "index.html";
+        }
     });
 }
 
-// Maand automatisch invullen + readOnly
-inpMaand.value = monthNameNlBE();
-inpMaand.readOnly = true;
+// Maand-keuze opbouwen (huidige maand + 2 volgende)
+buildMaandOptions();
+
 
 // ▼ Klanten laden
-async function loadKlanten(){
+async function loadKlanten() {
     const r = await api("/klanten");
-    if(r.status===401){ location.href="/index.html"; return; }
+    if (r.status === 401) { location.href = "/index.html"; return; }
     const klanten = await r.json();
 
     // label voor tonen, maar filteren doen we op NAAM
@@ -118,12 +154,12 @@ async function loadKlanten(){
             const label = k.email ? `${displayNaam} (${k.email})` : displayNaam;
             return {
                 id: k.id,
-                label,               // ← tonen
-                naam: displayNaam,   // ← naam
-                naamLower: displayNaam.toLowerCase() // ← filter-key
+                label,               // tonen
+                naam: displayNaam,   // naam
+                naamLower: displayNaam.toLowerCase() // filter-key
             };
         })
-        .sort((a,b)=> a.naam.localeCompare(b.naam,'nl',{sensitivity:"base"}));
+        .sort((a, b) => a.naam.localeCompare(b.naam, "nl", { sensitivity: "base" }));
 
     klantenMap = Object.fromEntries(klantenCache.map(k => [k.id, k.naam]));
     renderKlantList("");   // start: leeg tot je typt
@@ -131,14 +167,14 @@ async function loadKlanten(){
 }
 
 // ▼ Popover-lijst alleen op NAAM filteren
-function renderKlantList(filter){
+function renderKlantList(filter) {
     const f = filter.trim().toLowerCase();
     const lijst = f
-        ? klantenCache.filter(k => k.naamLower.includes(f)) // ← alleen naam
+        ? klantenCache.filter(k => k.naamLower.includes(f)) // alleen naam
         : []; // geen filter = lijst dicht/geen items
 
     klantList.innerHTML = lijst
-        .map((k,i)=>`<div class="combo-item${i===0?" active":""}" data-id="${k.id}">${k.label}</div>`)
+        .map((k, i) => `<div class="combo-item${i === 0 ? " active" : ""}" data-id="${k.id}">${k.label}</div>`)
         .join("");
 
     klantList.classList.toggle("hidden", lijst.length === 0);
@@ -234,7 +270,6 @@ async function getMedewerkerNaam(medewerkerId) {
             medewerkerCache.set(medewerkerId, naam);
             return naam;
         }
-        // 403/404 → geen toegang of niet gevonden
         const fallback = `#${medewerkerId}`;
         medewerkerCache.set(medewerkerId, fallback);
         return fallback;
@@ -263,7 +298,7 @@ async function loadBestellingen() {
             spelType: b.spelType,
             maand: b.maand,
             maandKey: maandKey(b.maand),
-            datumIso: String(b.datumRegistratie), // "YYYY-MM-DD"
+            datumIso: String(b.datumRegistratie), // ISO LocalDateTime string
             betaald: !!b.betaald,
             medewerkerNaam,
             raw: b                    // originele record voor acties
@@ -273,12 +308,12 @@ async function loadBestellingen() {
     renderBestellingen();
 }
 
-function renderBestellingen(){
+function renderBestellingen() {
     const rows = [...bestellingen];
 
     if (sortState.dir !== 0 && sortState.col) {
         const dir = sortState.dir;
-        rows.sort((a,b)=>{
+        rows.sort((a, b) => {
             let c = 0;
             switch (sortState.col) {
                 case "id":         c = cmpNum(a.id, b.id); break;
@@ -289,13 +324,13 @@ function renderBestellingen(){
                 case "betaald":    c = cmpBool(a.betaald, b.betaald); break;  // Nee→Ja
                 case "medewerker": c = cmpStr(a.medewerkerNaam, b.medewerkerNaam); break;
             }
-            return dir*c || cmpNum(a.__idx, b.__idx); // stabiel
+            return dir * c || cmpNum(a.__idx, b.__idx); // stabiel
         });
     } else {
-        rows.sort((a,b)=>cmpNum(a.__idx,b.__idx)); // normaal
+        rows.sort((a, b) => cmpNum(a.__idx, b.__idx)); // normaal
     }
 
-    // pijltje in header updaten
+    // pijltje in header updaten (optioneel, als je .sort-span zou hebben)
     document.querySelectorAll("th.sortable .sort").forEach(s => s.textContent = "");
     if (sortState.col && sortState.dir) {
         const el = document.querySelector(`th.sortable[data-col="${sortState.col}"] .sort`);
@@ -307,8 +342,14 @@ function renderBestellingen(){
     for (const r of rows) {
         const b = r.raw;
         const acties = [];
-        if (!b.betaald) acties.push(`<span class="action-link act-betaal" data-id="${b.id}">Markeer betaald</span>`);
-        if (isAdmin())  acties.push(`<span class="action-link danger act-del" data-id="${b.id}">Verwijder</span>`);
+        if (!b.betaald) {
+            acties.push(`<span class="action-link act-betaal" data-id="${b.id}">Markeer betaald</span>`);
+            if (isAdmin()) {
+                acties.push(`<span class="action-link danger act-del" data-id="${b.id}">Verwijder</span>`);
+            }
+        }
+// als b.betaald === true → geen acties behalve "-" in de cel
+
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
@@ -316,7 +357,7 @@ function renderBestellingen(){
       <td>${r.klantNaam}</td>
       <td>${r.spelType}</td>
       <td>${r.maand}</td>
-      <td>${fmtLocalDateToNl(r.datumIso)}</td>
+      <td>${fmtLocalDateTimeToNl(r.datumIso)}</td>
       <td>${r.betaald ? "Ja" : "Nee"}</td>
       <td>${r.medewerkerNaam}</td>
       <td class="actions-cell"><div class="action-list">${acties.join("") || "-"}</div></td>
@@ -392,7 +433,7 @@ form.addEventListener("submit", async (e) => {
         // Reset UI
         selectedKlantId = 0;
         klantSearch.value = "";
-        inpMaand.value = monthNameNlBE();
+        buildMaandOptions();   // opnieuw huidige + 2 volgende maanden
         validate();
         await loadBestellingen();
         alert("Bestelling opgeslagen.");
@@ -411,16 +452,16 @@ form.addEventListener("submit", async (e) => {
 await loadKlanten();
 await loadBestellingen();
 
-document.querySelectorAll("th.sortable").forEach(th=>{
-    th.addEventListener("click", ()=>{
+document.querySelectorAll("th.sortable").forEach(th => {
+    th.addEventListener("click", () => {
         const col = th.dataset.col;
         if (!col) return;
         if (sortState.col !== col) {
             sortState = { col, dir: 1 };               // start met asc
         } else {
             sortState.dir = sortState.dir === 1 ? -1   // asc → desc
-                : sortState.dir === -1 ? 0   // desc → normaal
-                    : 1;                         // normaal → asc
+                : sortState.dir === -1 ? 0             // desc → normaal
+                    : 1;                               // normaal → asc
         }
         renderBestellingen();
     });

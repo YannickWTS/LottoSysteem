@@ -13,7 +13,7 @@
         <h1>Bestellingen</h1>
         <div class="action-list">
             <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
-            <button id="btnLogout">Afmelden</button>
+            <button id="btnLogout" class="btn-logout">Afmelden</button>
         </div>
     </div>
 
@@ -42,12 +42,15 @@
                 </div>
 
                 <div>
-                    <label>Maand (nl-BE)
-                        <input type="text" id="inpMaand" name="maand" readonly style="background-color: #a8a8a8;">
+                    <label>Maand - Jaar
+                        <select id="inpMaand" name="maand">
+                            <!-- opties worden door JS ingevuld -->
+                        </select>
                     </label>
 
-                    <label style="display:flex;align-items:center;gap:8px;">
-                        <input type="checkbox" id="chkBetaald"/> Betaald
+                    <label class="betaald-label">
+                        <input type="checkbox" id="chkBetaald"/>
+                        <span>Betaald</span>
                     </label>
 
                     <p id="formMsg" class="form-msg hidden" aria-live="polite"></p>
@@ -56,6 +59,7 @@
                         <button id="btnOpslaan" type="submit" disabled>Opslaan</button>
                     </div>
                 </div>
+
             </div>
         </form>
     </section>
@@ -69,13 +73,14 @@
             <table class="t">
                 <thead>
                 <tr>
-                    <th class="sortable" data-col="id">ID<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="klant">Klant<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="spel">Speltype<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="maand">Maand<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="datum">Datum<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="betaald">Betaald<span class="filter">⮃</span></th>
-                    <th class="sortable" data-col="medewerker">Medewerker<span class="filter">⮃</span></th>
+                    <th class="sortable" data-col="id">ID<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="klant">Klant<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="spel">Speltype<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="maand">Maand<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="datum">Datum<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="betaald">Betaald<span class="filter sort"></span></th>
+                    <th class="sortable" data-col="medewerker">Medewerker<span class="filter sort"></span></th>
+
                     <th>Acties</th>
                 </tr>
                 </thead>

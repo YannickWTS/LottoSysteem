@@ -3,23 +3,22 @@
 /* ============================================================================
  * Helpers
  * ==========================================================================*/
-
 function qs(selector) {
     return document.querySelector(selector);
 }
-const btnLogout  = qs("#btnLogout");
+
+const btnLogout = qs("#btnLogout");
 
 async function apiFetch(url, options = {}) {
-    // Zorg dat cookies/sessie meegaan
     return fetch(url, {
         credentials: "include",
         headers: {"Content-Type": "application/json"},
-        ...options
+        ...options,
     });
 }
 
 function getCurrentUserRole() {
-    return localStorage.getItem("rol"); // door login.js gezet (USER/ADMIN)
+    return localStorage.getItem("rol"); // gezet door login.js
 }
 
 function getCurrentUserId() {
@@ -39,6 +38,103 @@ function setMsg(el, type, text) {
     if (type === "ok") el.classList.add("ok");
 }
 
+/* ============================================================================
+ * Globale modal
+ * ==========================================================================*/
+
+const modalOverlay = qs("#modalOverlay");
+const modalTitle   = qs("#modalTitle");
+const modalBody    = qs("#modalBody");
+const modalCancel  = qs("#modalCancel");
+const modalOk      = qs("#modalOk");
+
+let modalOnOk = null;
+
+function closeModal() {
+    if (!modalOverlay) return;
+    modalOverlay.classList.add("hidden");
+    if (modalBody)  modalBody.innerHTML = "";
+    if (modalTitle) modalTitle.textContent = "";
+    modalOnOk = null;
+    if (modalOk) modalOk.disabled = false; // reset knop
+}
+
+function openModal({ title, bodyHtml, okText = "Opslaan", showOk = true, onOk }) {
+    if (!modalOverlay) return;
+
+    if (modalTitle) modalTitle.textContent = title || "";
+    if (modalBody)  modalBody.innerHTML = bodyHtml || "";
+
+    if (modalOk) {
+        modalOk.textContent = okText;
+        modalOk.style.display = showOk ? "" : "none";
+        modalOk.disabled = false; // wordt evt. door validatie uitgezet
+    }
+
+    modalOnOk = onOk || null;
+    modalOverlay.classList.remove("hidden");
+}
+
+if (modalCancel) {
+    modalCancel.addEventListener("click", closeModal);
+}
+if (modalOverlay) {
+    modalOverlay.addEventListener("click", (e) => {
+        if (e.target === modalOverlay) {
+            closeModal();
+        }
+    });
+}
+if (modalOk) {
+    modalOk.addEventListener("click", async () => {
+        if (typeof modalOnOk === "function") {
+            await modalOnOk();
+        }
+    });
+}
+
+/* ============================================================================
+ * Realtime wachtwoord-validatie in modal
+ * (hergebruikt voor "wachtwoord wijzigen" én "nieuwe gebruiker")
+ * ==========================================================================*/
+function enableModalPasswordValidation() {
+    const pw1  = document.getElementById("modalPw1");
+    const pw2  = document.getElementById("modalPw2");
+    const msg  = document.getElementById("modalPwMsg"); // LET OP id
+    const okBtn = document.getElementById("modalOk");
+
+    if (!pw1 || !pw2 || !okBtn || !msg) return;
+
+    function validate() {
+        const v1 = pw1.value.trim();
+        const v2 = pw2.value.trim();
+
+        if (!v1 && !v2) {
+            okBtn.disabled = true;
+            setMsg(msg, null, "");
+            return;
+        }
+        if (v1.length < 6) {
+            okBtn.disabled = true;
+            setMsg(msg, "error", "Wachtwoord is te kort (minimaal 6 tekens).");
+            return;
+        }
+        if (v1 !== v2) {
+            okBtn.disabled = true;
+            setMsg(msg, "error", "Wachtwoorden komen niet overeen.");
+            return;
+        }
+
+        okBtn.disabled = false;
+        setMsg(msg, "ok", "OK ✔");
+    }
+
+    okBtn.disabled = true;    // start: uit
+    setMsg(msg, null, "");    // start: leeg
+
+    pw1.addEventListener("input", validate);
+    pw2.addEventListener("input", validate);
+}
 
 /* ============================================================================
  * Navigatie
@@ -53,8 +149,11 @@ if (btnLogout) {
     btnLogout.addEventListener("click", async () => {
         const ok = window.confirm("Afmelden en terug naar login?");
         if (!ok) return;
-        try { await apiFetch("/auth/logout", { method: "POST" }); }
-        finally { location.href = "index.html"; }
+        try {
+            await apiFetch("/auth/logout", { method: "POST" });
+        } finally {
+            location.href = "index.html";
+        }
     });
 }
 
@@ -66,7 +165,7 @@ const passwordForm = qs("#formWachtwoord");
 
 if (passwordForm) {
     const msgEl = document.getElementById("pwFeedback");
-    const btn = passwordForm.querySelector('button[type="submit"]');
+    const btn   = passwordForm.querySelector('button[type="submit"]');
 
     function validateOwnPw() {
         const w1 = passwordForm.w1.value.trim();
@@ -93,8 +192,8 @@ if (passwordForm) {
 
     passwordForm.w1.addEventListener("input", validateOwnPw);
     passwordForm.w2.addEventListener("input", validateOwnPw);
-    // start state
     if (btn) btn.disabled = true;
+
     passwordForm.addEventListener("submit", async (event) => {
         event.preventDefault();
 
@@ -119,15 +218,15 @@ if (passwordForm) {
 
         const response = await apiFetch(`/gebruiker/${meId}/wachtwoord`, {
             method: "PUT",
-            body: JSON.stringify({wachtwoord: newPassword})
+            body: JSON.stringify({ wachtwoord: newPassword }),
         });
 
         if (response.ok) {
             alert("Wachtwoord gewijzigd.");
             passwordForm.reset();
-            setMsg(msgEl, null, "");     // 👈 feedback leeg
-            if (btn) btn.disabled = true; // 👈 knop weer uit
-            validateOwnPw();             // 👈 beginstaat forceren
+            setMsg(msgEl, null, "");
+            if (btn) btn.disabled = true;
+            validateOwnPw();
         } else if (response.status === 401) {
             window.location.href = "/index.html";
         } else if (response.status === 403) {
@@ -137,6 +236,10 @@ if (passwordForm) {
         }
     });
 }
+
+/* ============================================================================
+ * Profiel (mijn gebruikersnaam)
+ * ==========================================================================*/
 
 const profielForm = document.getElementById("formProfiel");
 if (profielForm) {
@@ -155,12 +258,8 @@ if (profielForm) {
         }
     });
 
-    /* ============================================================================
- * All: profiel wijzigen.
- * ==========================================================================*/
     profielForm.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const id = Number(profielForm.id.value);
         const naam = profielForm.gebruikersnaam.value.trim();
         if (naam.length < 2) {
             setPMsg("error", "Gebruikersnaam is te kort.");
@@ -171,14 +270,13 @@ if (profielForm) {
             method: "PUT",
             credentials: "include",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ gebruikersnaam: naam })
+            body: JSON.stringify({ gebruikersnaam: naam }),
         });
 
         if (r.ok) {
             setPMsg("ok", "Profiel opgeslagen.");
-            // houd UI & storage gelijk
             localStorage.setItem("gebruiker", naam);
-            await loadUsersForAdmin(); // optioneel: refresh adminlijst als je admin bent
+            await loadUsersForAdmin(); // als je admin bent, refresht dit de tabel
         } else if (r.status === 409) {
             setPMsg("error", "Gebruikersnaam bestaat al.");
         } else if (r.status === 401) {
@@ -197,9 +295,8 @@ if (profielForm) {
 
 async function loadUsersForAdmin() {
     const adminBlock = qs("#adminBlok");
-    const tableBody = qs("#usersTbody");
+    const tableBody  = qs("#usersTbody");
 
-    // Als je geen admin bent, gewoon niets tonen.
     if (getCurrentUserRole() !== "ADMIN") return;
 
     const response = await apiFetch("/gebruiker");
@@ -234,7 +331,6 @@ async function loadUsersForAdmin() {
           <span class="action-link act-role" data-id="${user.id}" data-current="${user.rol}">Rol</span>
           <span class="action-link danger act-delete" data-id="${user.id}">Verwijder</span>
         </div>
-        <div class="inline-slot"></div> <!-- popover komt hier -->
       </td>
     `;
         tableBody.appendChild(row);
@@ -242,51 +338,11 @@ async function loadUsersForAdmin() {
 }
 
 /* ============================================================================
- * Popover manager (maximaal één open)
- * ==========================================================================*/
-
-let openSlot = null;
-
-function clearInline(slot) {
-    if (!slot) return;
-    slot.innerHTML = "";
-    slot.dataset.mode = "";
-    if (openSlot === slot) openSlot = null;
-}
-
-function openPopover(slot, mode, html) {
-    if (openSlot && openSlot !== slot) clearInline(openSlot);
-    if (slot.dataset.mode === mode) {
-        clearInline(slot);
-        return;
-    }
-    slot.innerHTML = html;
-    slot.dataset.mode = mode;
-    openSlot = slot;
-}
-
-// Klik buiten popover → sluiten
-document.addEventListener("click", (e) => {
-    if (!openSlot) return;
-    const pop = openSlot.querySelector(".popover");
-    if (!pop) {
-        openSlot = null;
-        return;
-    }
-
-    const clickedInsidePopover = pop.contains(e.target);
-    const clickedOnBadges = openSlot.previousElementSibling && openSlot.previousElementSibling.contains(e.target);
-
-    if (!clickedInsidePopover && !clickedOnBadges) clearInline(openSlot);
-});
-
-/* ============================================================================
- * Click actions (admin-rijen)
+ * Admin-acties via MODAL
  * ==========================================================================*/
 
 document.addEventListener("click", async (e) => {
-
-    // Verwijderen – debounce tegen confirm-spam
+    /* --- Verwijderen --- */
     if (e.target.matches(".act-delete")) {
         e.stopPropagation();
         if (document.body.dataset.deleting === "1") return;
@@ -295,7 +351,7 @@ document.addEventListener("click", async (e) => {
         const id = e.target.dataset.id;
         try {
             if (!confirm("Gebruiker verwijderen?")) return;
-            const resp = await apiFetch(`/gebruiker/${id}`, {method: "DELETE"});
+            const resp = await apiFetch(`/gebruiker/${id}`, { method: "DELETE" });
             if (resp.ok) {
                 await loadUsersForAdmin();
             } else if (resp.status === 401) {
@@ -311,274 +367,209 @@ document.addEventListener("click", async (e) => {
         return;
     }
 
-    // Wachtwoord-popover
+    /* --- Wachtwoord wijzigen (andere gebruiker) --- */
     if (e.target.matches(".act-password")) {
         e.stopPropagation();
         const id = e.target.dataset.id;
-        const cell = e.target.closest(".actions-cell");
-        const slot = cell.querySelector(".inline-slot");
 
-        openPopover(slot, "password", `
-      <div class="popover">
+        openModal({
+            title: `Wachtwoord wijzigen (id ${id})`,
+            bodyHtml: `
         <div class="stack">
-          <label>Nieuw</label>
-          <div class="field"><input type="password" class="pw1" placeholder="min. 6 tekens"></div>
+          <label for="modalPw1">Nieuw wachtwoord</label>
+          <input id="modalPw1" type="password" placeholder="min. 6 tekens">
 
-          <label>Herhaal</label>
-          <div class="field"><input type="password" class="pw2" placeholder="herhaal"></div>
+          <label for="modalPw2">Herhaal wachtwoord</label>
+          <input id="modalPw2" type="password" placeholder="herhaal">
         </div>
-        <div class="actions">
-          <button class="save-password" data-id="${id}" disabled>Opslaan</button>
-        </div>
-         <p class="form-msg pw-msg hidden" aria-live="polite" style="margin-top:6px;"></p>
-      </div>
-    `);
+        <p id="modalPwMsg" class="form-msg" aria-live="polite"></p>
+      `,
+            okText: "Opslaan",
+            onOk: async () => {
+                const pw1 = qs("#modalPw1").value.trim();
+                const pw2 = qs("#modalPw2").value.trim();
+                const msg = qs("#modalPwMsg");
+
+                if (!pw1 || !pw2) {
+                    setMsg(msg, "error", "Beide velden zijn verplicht.");
+                    return;
+                }
+                if (pw1.length < 6) {
+                    setMsg(msg, "error", "Wachtwoord is te kort (minimaal 6 tekens).");
+                    return;
+                }
+                if (pw1 !== pw2) {
+                    setMsg(msg, "error", "Wachtwoorden komen niet overeen.");
+                    return;
+                }
+
+                const res = await apiFetch(`/gebruiker/${id}/wachtwoord`, {
+                    method: "PUT",
+                    body: JSON.stringify({ wachtwoord: pw1 }),
+                });
+
+                if (res.ok) {
+                    alert("Wachtwoord aangepast.");
+                    closeModal();
+                } else if (res.status === 401) {
+                    window.location.href = "/index.html";
+                } else if (res.status === 403) {
+                    setMsg(msg, "error", "Geen rechten om wachtwoord te wijzigen.");
+                } else {
+                    setMsg(msg, "error", "Opslaan mislukt.");
+                }
+            },
+        });
+
+        // 🔄 realtime validatie activeren
+        enableModalPasswordValidation();
         return;
     }
 
-    // Rol-popover
+    /* --- Rol wijzigen --- */
     if (e.target.matches(".act-role")) {
         e.stopPropagation();
         const id = e.target.dataset.id;
         const current = (e.target.dataset.current || "USER").toUpperCase();
-        const cell = e.target.closest(".actions-cell");
-        const slot = cell.querySelector(".inline-slot");
+        const row = e.target.closest("tr");
 
-        openPopover(slot, "role", `
-      <div class="popover">
-        <div class="row">
-          <label>Rol</label>
-          <select class="role-select" data-initial="${current}">
-            <option ${current === "USER" ? "selected" : ""}>USER</option>
-            <option ${current === "ADMIN" ? "selected" : ""}>ADMIN</option>
+        openModal({
+            title: `Rol wijzigen (id ${id})`,
+            bodyHtml: `
+        <div class="stack">
+          <label for="modalRole">Rol</label>
+          <select id="modalRole">
+            <option value="USER">USER</option>
+            <option value="ADMIN">ADMIN</option>
           </select>
-          <button class="save-role" data-id="${id}" disabled>Opslaan</button>
         </div>
-      </div>
-    `);
+        <p id="modalMsg" class="form-msg" aria-live="polite"></p>
+      `,
+            okText: "Opslaan",
+            onOk: async () => {
+                const select = qs("#modalRole");
+                const msg = qs("#modalMsg");
+                let newRole = (select.value || "USER").toUpperCase();
+
+                if (newRole === current) {
+                    closeModal();
+                    return;
+                }
+
+                const res = await apiFetch(`/gebruiker/${id}/rol`, {
+                    method: "PUT",
+                    body: JSON.stringify({ rol: newRole }),
+                });
+
+                if (res.ok) {
+                    const pill = row.querySelector(".role-pill");
+                    if (pill) pill.textContent = newRole;
+                    const roleLink = row.querySelector(".act-role");
+                    if (roleLink) roleLink.dataset.current = newRole;
+
+                    closeModal();
+                } else if (res.status === 401) {
+                    window.location.href = "/index.html";
+                } else if (res.status === 403) {
+                    setMsg(msg, "error", "Geen rechten om rol te wijzigen.");
+                } else {
+                    setMsg(msg, "error", "Rol wijzigen mislukt.");
+                }
+            },
+        });
+
+        const roleSelect = qs("#modalRole");
+        if (roleSelect) roleSelect.value = current;
+
         return;
     }
 
-    // Opslaan wachtwoord
-    if (e.target.matches(".save-password")) {
-        e.stopPropagation();
-        const id = e.target.dataset.id;
-        const slot = e.target.closest(".inline-slot");
-        const pw1 = slot.querySelector(".pw1").value.trim();
-
-        const res = await apiFetch(`/gebruiker/${id}/wachtwoord`, {
-            method: "PUT",
-            body: JSON.stringify({wachtwoord: pw1})
-        });
-
-        if (res.ok) {
-            clearInline(slot);
-            alert("Wachtwoord aangepast.");
-        } else if (res.status === 401) {
-            window.location.href = "/index.html";
-        } else if (res.status === 403) {
-            alert("Geen rechten om wachtwoord te wijzigen.");
-        } else {
-            alert("Reset mislukt.");
-        }
-        return;
-    }
-
-    // Opslaan rol
-    if (e.target.matches(".save-role")) {
-        e.stopPropagation();
-        const id = e.target.dataset.id;
-        const slot = e.target.closest(".inline-slot");
-        const select = slot.querySelector(".role-select");
-        const newRole = select.value.toUpperCase();
-
-        const res = await apiFetch(`/gebruiker/${id}/rol`, {
-            method: "PUT",
-            body: JSON.stringify({rol: newRole})
-        });
-
-        if (res.ok) {
-            // update pill + data-current op badge
-            const row = e.target.closest("tr");
-            row.querySelector(".role-pill").textContent = newRole;
-            const roleBadge = row.querySelector(".act-role");
-            if (roleBadge) roleBadge.dataset.current = newRole;
-
-            clearInline(slot);
-            alert("Rol opgeslagen.");
-        } else if (res.status === 401) {
-            window.location.href = "/index.html";
-        } else if (res.status === 403) {
-            alert("Geen rechten om rol te wijzigen.");
-        } else {
-            alert("Rol wijzigen mislukt.");
-        }
-    }
-});
-
-/* ============================================================================
- * Live validatie (wachtwoord en rol)
- * ==========================================================================*/
-
-document.addEventListener("input", (e) => {
-    // Password validatie (rij-popover)
-    if (e.target.matches(".pw1, .pw2")) {
-        const pop = e.target.closest(".popover");
-        if (!pop) return;
-
-        const pw1 = pop.querySelector(".pw1").value.trim();
-        const pw2 = pop.querySelector(".pw2").value.trim();
-        const btn = pop.querySelector(".save-password");
-        const msg = pop.querySelector(".pw-msg");
-
-        if (!pw1 && !pw2) {
-            if (btn) btn.disabled = true;
-            setMsg(msg, null, "");
-            return;
-        }
-        if (pw1.length < 6) {
-            if (btn) btn.disabled = true;
-            setMsg(msg, "error", "Wachtwoord is te kort (minimaal 6 tekens).");
-            return;
-        }
-        if (pw1 !== pw2) {
-            if (btn) btn.disabled = true;
-            setMsg(msg, "error", "Wachtwoorden komen niet overeen.");
-            return;
-        }
-        if (btn) btn.disabled = false;
-        setMsg(msg, "ok", "OK ✔");
-    }
-});
-
-
-document.addEventListener("change", (e) => {
-    // Rol wijziging
-    if (e.target.matches(".role-select")) {
-        const select = e.target;
-        const initial = (select.dataset.initial || "").toUpperCase();
-        const current = select.value.toUpperCase();
-        const btn = select.closest(".popover").querySelector(".save-role");
-        btn.disabled = (current === initial);
-    }
-});
-
-/* ============================================================================
- * Nieuwe gebruiker (popover bij de knop)
- * ==========================================================================*/
-
-// Popover-slot naast de knop in de admin-header
-function getCreateSlot() {
-    const head = document.querySelector("#adminBlok .adminHead");
-    if (!head) return null;
-    let slot = head.querySelector(".create-slot");
-    if (!slot) {
-        slot = document.createElement("div");
-        slot.className = "inline-slot create-slot"; // hergebruikt popover styles
-        head.appendChild(slot);
-    }
-    return slot;
-}
-
-// Open/close + opslaan/annuleren
-document.addEventListener("click", async (e) => {
-    // Open popover
+    /* --- Nieuwe gebruiker --- */
     if (e.target.matches("#btnNieuweUser")) {
         e.stopPropagation();
-        const slot = getCreateSlot();
-        if (!slot) return;
 
-        openPopover(slot, "create", `
-      <div class="popover"">
-        <div class="row" style="grid-template-columns: 120px 1fr;">
-          <label>Gebruikersnaam</label>
-          <input type="text" class="nu-name" placeholder="bv. jan" />
-        </div>
-        <div class="row" style="grid-template-columns: 120px 1fr;">
-          <label>Wachtwoord</label>
-          <input type="password" class="nu-pass1" placeholder="min. 6 tekens" />
-        </div>
-        <div class="row" style="grid-template-columns: 120px 1fr;">
-          <label>Herhaal</label>
-          <input type="password" class="nu-pass2" placeholder="herhaal" />
-        </div>
-        <div class="row" style="grid-template-columns: 120px 1fr;">
-          <label>Rol</label>
-          <select class="nu-role">
-            <option selected>USER</option>
-            <option>ADMIN</option>
+        openModal({
+            title: "Nieuwe gebruiker",
+            bodyHtml: `
+        <div class="stack">
+          <label for="modalName">Gebruikersnaam</label>
+          <input id="modalName" type="text" placeholder="bv. jan">
+
+          <label for="modalPw1">Wachtwoord</label>
+          <input id="modalPw1" type="password" placeholder="min. 6 tekens">
+
+          <label for="modalPw2">Herhaal wachtwoord</label>
+          <input id="modalPw2" type="password" placeholder="herhaal">
+
+          <label for="modalRole">Rol</label>
+          <select id="modalRole">
+            <option value="USER" selected>USER</option>
+            <option value="ADMIN">ADMIN</option>
           </select>
         </div>
+        <p id="modalPwMsg" class="form-msg" aria-live="polite"></p>
+      `,
+            okText: "Opslaan",
+            onOk: async () => {
+                const name = qs("#modalName").value.trim();
+                const pw1  = qs("#modalPw1").value.trim();
+                const pw2  = qs("#modalPw2").value.trim();
+                const role = (qs("#modalRole").value || "USER").toUpperCase();
+                const msg  = qs("#modalPwMsg");
 
-        <div class="actions" style="margin-top:8px;">
-          <button class="nu-save" disabled>Opslaan</button>
-          <button class="nu-cancel danger" type="button">Annuleren</button>
-        </div>
+                if (name.length < 2) {
+                    setMsg(msg, "error", "Gebruikersnaam is te kort (min. 2 tekens).");
+                    return;
+                }
+                if (pw1.length < 6) {
+                    setMsg(msg, "error", "Wachtwoord is te kort (minimaal 6 tekens).");
+                    return;
+                }
+                if (pw1 !== pw2) {
+                    setMsg(msg, "error", "Wachtwoorden komen niet overeen.");
+                    return;
+                }
 
-        <!-- 👇 feedbackregel -->
-        <p class="form-msg nu-msg hidden" aria-live="polite" style="margin-top:6px;"></p>
-      </div>
-    `);
-        return;
-    }
+                const res = await apiFetch("/gebruiker", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        gebruikersnaam: name,
+                        wachtwoord: pw1,
+                        rol: role,
+                    }),
+                });
 
-    // Annuleren
-    if (e.target.matches(".nu-cancel")) {
-        const slot = e.target.closest(".inline-slot");
-        clearInline(slot);
-        return;
-    }
-
-    // Opslaan (POST /gebruiker)
-    if (e.target.matches(".nu-save")) {
-        e.stopPropagation();
-        const slot = e.target.closest(".inline-slot");
-        const name = slot.querySelector(".nu-name").value.trim();
-        const p1 = slot.querySelector(".nu-pass1").value.trim();
-        const role = (slot.querySelector(".nu-role").value || "USER").toUpperCase();
-
-        const res = await apiFetch("/gebruiker", {
-            method: "POST",
-            body: JSON.stringify({gebruikersnaam: name, wachtwoord: p1, rol: role})
+                if (res.ok) {
+                    closeModal();
+                    await loadUsersForAdmin();
+                } else if (res.status === 400) {
+                    setMsg(msg, "error", "Validatiefout (controleer de velden).");
+                } else if (res.status === 409) {
+                    setMsg(msg, "error", "Gebruikersnaam bestaat al.");
+                } else if (res.status === 401) {
+                    window.location.href = "/index.html";
+                } else if (res.status === 403) {
+                    setMsg(msg, "error", "Je hebt geen rechten om een gebruiker aan te maken.");
+                } else {
+                    setMsg(msg, "error", "Aanmaken mislukt.");
+                }
+            },
         });
 
-        if (res.ok) {
-            clearInline(slot);
-            await loadUsersForAdmin();
-        } else if (res.status === 400) {
-            alert("Validatiefout bij aanmaken (controleer velden).");
-        } else if (res.status === 409) {
-            alert("Gebruikersnaam bestaat al.");
-        } else if (res.status === 401) {
-            window.location.href = "/index.html";
-        } else if (res.status === 403) {
-            alert("Je hebt geen rechten om een gebruiker aan te maken.");
-        } else {
-            alert("Aanmaken mislukt.");
-        }
+        // 🔄 ook hier realtime paswoord-check
+        enableModalPasswordValidation();
         return;
     }
 });
 
-// Live validatie in create-popover
-document.addEventListener("input", (e) => {
-    if (e.target.matches(".nu-name, .nu-pass1, .nu-pass2, .nu-role")) {
-        const slot = e.target.closest(".inline-slot");
-        if (!slot) return;
-        const name = slot.querySelector(".nu-name").value.trim();
-        const p1 = slot.querySelector(".nu-pass1").value.trim();
-        const p2 = slot.querySelector(".nu-pass2").value.trim();
-        const btn = slot.querySelector(".nu-save");
-        const valid = name.length >= 2 && p1.length >= 6 && p1 === p2;
-        btn.disabled = !valid;
-    }
-});
+/* ============================================================================
+ * Profiel van ingelogde gebruiker laden
+ * ==========================================================================*/
 
 async function loadMyProfile() {
     const f = document.getElementById("formProfiel");
     if (!f) return;
 
-    // Optie A: endpoint dat de ingelogde user geeft (heb je al): /gebruiker/admin
     const res = await apiFetch("/gebruiker/admin");
     if (res.status === 401) {
         window.location.href = "/index.html";
@@ -594,7 +585,6 @@ async function loadMyProfile() {
     f.gebruikersnaam.value = u.gebruikersnaam;
     f.rol.value = (u.rol || "").toUpperCase();
 
-    // Handig om localStorage in sync te houden:
     localStorage.setItem("gebruikerId", String(u.id));
     localStorage.setItem("gebruiker", u.gebruikersnaam);
     localStorage.setItem("rol", u.rol?.toUpperCase() || "USER");

@@ -4,16 +4,16 @@
     <meta charset="utf-8">
     <title>Gebruikers</title>
     <link rel="icon" href="/img/aIcon.ico">
-    <link rel="stylesheet" href="/css/gebruikers.css">
+    <link rel="stylesheet" href="/css/style.css">
     <script src="/js/gebruikers.js" type="module"></script>
 </head>
-<body>
+<body class="page-gebruikers">
 <main class="wrap">
     <div class="top">
         <h1>Gebruikers</h1>
         <div class="action-list">
             <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
-            <button id="btnLogout">Afmelden</button>
+            <button id="btnLogout" class="btn-logout">Afmelden</button>
         </div>
     </div>
 
@@ -73,6 +73,19 @@
         </table>
     </section>
 </main>
+
+<!-- Globale modal (voor klanten bewerken / toevoegen) -->
+<div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+        <h3 id="modalTitle"></h3>
+        <div id="modalBody"></div>
+        <div class="modal-actions">
+            <button type="button" id="modalCancel">Annuleren</button>
+            <button type="button" id="modalOk">Opslaan</button>
+        </div>
+    </div>
+</div>
+
 
 </body>
 </html>

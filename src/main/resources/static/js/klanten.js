@@ -34,43 +34,80 @@ async function apiFetch(url, options = {}) {
     return ct.includes("application/json") ? res.json() : res.text();
 }
 
-function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;"
+    }[c]));
+}
 function escapeAttr(s) { return escapeHtml(s); }
 
+function setMsg(el, type, text) {
+    if (!el) return;
+    el.textContent = text || "";
+    el.classList.remove("error", "ok");
+    if (!text) return;
+    if (type === "error") el.classList.add("error");
+    if (type === "ok")    el.classList.add("ok");
+}
+
 /* ────────────────────── DOM refs / state ─────────────────── */
-const tbody      = qs("#tbodyKlanten");
-const btnNieuwe  = qs("#btnNieuweKlant");
-const zoek       = qs("#inpZoek");
-const btnLogout  = qs("#btnLogout");
+const tbody     = qs("#tbodyKlanten");
+const btnNieuwe = qs("#btnNieuweKlant");
+const zoek      = qs("#inpZoek");
+const btnLogout = qs("#btnLogout");
+
+// modal refs
+const modalOverlay = qs("#modalOverlay");
+const modalTitle   = qs("#modalTitle");
+const modalBody    = qs("#modalBody");
+const modalCancel  = qs("#modalCancel");
+const modalOk      = qs("#modalOk");
+
+let modalOkHandler = null;
 
 let isAdmin = false;
 let klanten = [];
 
-let openSlot = null; // 1 popover tegelijk
-
-/* ───────────────────── Popover manager ───────────────────── */
-function clearInline(slot) {
-    if (!slot) return;
-    slot.innerHTML = "";
-    slot.dataset.mode = "";
-    if (openSlot === slot) openSlot = null;
+/* ───────────────────── Modal helpers ─────────────────────── */
+function closeModal() {
+    modalOverlay.classList.add("hidden");
+    modalBody.innerHTML = "";
+    modalTitle.textContent = "";
+    modalOkHandler = null;
 }
 
-function openPopover(slot, mode, html) {
-    if (openSlot && openSlot !== slot) clearInline(openSlot);
-    if (slot.dataset.mode === mode) { clearInline(slot); return; }
-    slot.innerHTML = html;
-    slot.dataset.mode = mode;
-    openSlot = slot;
+function openModal({ title, bodyHtml, okText = "Opslaan", showCancel = true, onOk }) {
+    modalTitle.textContent = title;
+    modalBody.innerHTML = bodyHtml;
+    modalOk.textContent = okText;
+    modalCancel.style.display = showCancel ? "" : "none";
+    modalOverlay.classList.remove("hidden");
+    modalOkHandler = onOk || null;
 }
 
-// klik-buiten => sluiten
-document.addEventListener("click", (e) => {
-    if (!openSlot) return;
-    const pop = openSlot.querySelector(".popover");
-    const onPopover = pop && pop.contains(e.target);
-    const onBadges  = openSlot.previousElementSibling?.contains(e.target);
-    if (!onPopover && !onBadges) clearInline(openSlot);
+// klik op achtergrond => sluiten
+modalOverlay?.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) {
+        closeModal();
+    }
+});
+
+// knoppen in modal
+modalCancel?.addEventListener("click", () => closeModal());
+modalOk?.addEventListener("click", async () => {
+    if (!modalOkHandler) return;
+    await modalOkHandler();
+});
+
+// ESC sluit modal
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modalOverlay.classList.contains("hidden")) {
+        closeModal();
+    }
 });
 
 /* ───────────────────────── Init ──────────────────────────── */
@@ -95,10 +132,16 @@ async function init() {
             finally { location.href = "index.html"; }
         });
     }
-    if (btnNieuwe) btnNieuwe.addEventListener("click", openCreatePopover);
-    if (zoek) zoek.addEventListener("input", render);
 
-    // 3) data
+    if (btnNieuwe) {
+        btnNieuwe.addEventListener("click", openCreateModal);
+    }
+
+    if (zoek) {
+        zoek.addEventListener("input", render);
+    }
+
+    // 3) data laden
     await load();
 }
 
@@ -120,7 +163,11 @@ function render() {
     }
 
     tbody.innerHTML = list.map(rowHtml).join("");
-    tbody.querySelectorAll("[data-act]").forEach(el => el.addEventListener("click", onRowAction));
+
+    // delegatie per rij
+    tbody.querySelectorAll("[data-act]").forEach(el =>
+        el.addEventListener("click", onRowAction)
+    );
 }
 
 function rowHtml(k) {
@@ -130,9 +177,9 @@ function rowHtml(k) {
         <span class="action-link" data-act="edit" data-id="${k.id}">Bewerk</span>
         <span class="action-link danger" data-act="delete" data-id="${k.id}">Verwijder</span>
       </div>
-      <div class="inline-slot" id="slot-${k.id}"></div>
     `
         : `<em style="color:var(--muted)">—</em>`;
+
     return `
     <tr>
       <td>${escapeHtml(k.naam)}</td>
@@ -148,67 +195,115 @@ function onRowAction(e) {
     const id  = Number(e.currentTarget.dataset.id);
     if (!act || !id) return;
 
-    if (act === "edit")   openEditPopover(id);
+    if (act === "edit")   openEditModal(id);
     if (act === "delete") onDelete(id);
 }
 
-function openEditPopover(id) {
+/* ───────────── Modal: klant bewerken ─────────────────────── */
+function openEditModal(id) {
     const k = klanten.find(x => x.id === id);
-    const slot = qs(`#slot-${id}`);
-    if (!slot) return;
+    if (!k) return;
 
-    openPopover(slot, "edit", `
-    <div class="popover">
-      <div class="row" style="grid-template-columns: 80px 1fr;">
-        <label>Naam</label>
-        <input type="text" id="edit-naam-${id}" value="${escapeAttr(k.naam)}">
-      </div>
-      <div class="row" style="grid-template-columns: 80px 1fr;">
-        <label>Email</label>
-        <input type="text" id="edit-email-${id}" value="${escapeAttr(k.email)}">
-      </div>
-      <div class="row" style="grid-template-columns: 1fr auto auto;">
-        <div></div>
-        <button type="button" class="btn-cancel" data-id="${id}">Annuleren</button>
-        <button type="button" class="btn-save" data-id="${id}">Opslaan</button>
-      </div>
-      <p id="msg-${id}" class="form-msg" style="margin-top:6px;"></p>
-    </div>
-  `);
+    openModal({
+        title: "Klant bewerken",
+        okText: "Opslaan",
+        bodyHtml: `
+        <div class="form-col">
+            <label>Naam
+                <input type="text" id="modalNaam" value="${escapeAttr(k.naam)}">
+            </label>
+            <label>Email
+                <input type="text" id="modalEmail" value="${escapeAttr(k.email)}">
+            </label>
+            <p id="modalMsg" class="form-msg" style="margin-top:6px;"></p>
+        </div>
+        `,
+        onOk: async () => {
+            const naam  = qs("#modalNaam").value.trim();
+            const email = qs("#modalEmail").value.trim();
+            const msg   = qs("#modalMsg");
 
-    slot.querySelector(".btn-cancel").addEventListener("click", () => clearInline(slot));
-    slot.querySelector(".btn-save").addEventListener("click", () => onSave(id));
+            if (!naam || !email) {
+                setMsg(msg, "error", "Naam en e-mail zijn verplicht.");
+                return;
+            }
+
+            try {
+                await apiFetch(`/klanten/${id}`, {
+                    method: "PUT",
+                    body: JSON.stringify({ id, naam, email })
+                });
+
+                // lokaal bijwerken
+                k.naam = naam;
+                k.email = email;
+
+                closeModal();
+                render();
+            } catch (err) {
+                if (err.status === 409) {
+                    setMsg(msg, "error", "E-mail bestaat al bij een andere klant.");
+                } else {
+                    setMsg(msg, "error", err.message || "Opslaan mislukt.");
+                }
+            }
+        }
+    });
 }
 
-async function onSave(id) {
-    const naam = qs(`#edit-naam-${id}`).value.trim();
-    const email = qs(`#edit-email-${id}`).value.trim();
-    const msg = qs(`#msg-${id}`);
+/* ───────────── Modal: nieuwe klant ───────────────────────── */
+function openCreateModal() {
+    if (!isAdmin) return;
 
-    if (!naam || !email) { setMsg(msg, "error", "Naam en e-mail zijn verplicht."); return; }
+    openModal({
+        title: "Nieuwe klant",
+        okText: "Toevoegen",
+        bodyHtml: `
+        <div class="form-col">
+            <label>Naam
+                <input type="text" id="modalNaam">
+            </label>
+            <label>Email
+                <input type="text" id="modalEmail">
+            </label>
+            <p id="modalMsg" class="form-msg" style="margin-top:6px;"></p>
+        </div>
+        `,
+        onOk: async () => {
+            const naam  = qs("#modalNaam").value.trim();
+            const email = qs("#modalEmail").value.trim();
+            const msg   = qs("#modalMsg");
 
-    const ok = window.confirm(`Wijzigingen opslaan voor “${naam}”?`);
-    if (!ok) return;
+            if (!naam || !email) {
+                setMsg(msg, "error", "Naam en e-mail zijn verplicht.");
+                return;
+            }
 
-    try {
-        await apiFetch(`/klanten/${id}`, { method: "PUT", body: JSON.stringify({ id, naam, email }) });
-        const k = klanten.find(x => x.id === id);
-        k.naam = naam; k.email = email;
-        setMsg(msg, "ok", "Opgeslagen.");
-        setTimeout(() => { clearInline(qs(`#slot-${id}`)); render(); }, 120);
-    } catch (err) {
-    if (err.status === 409) {
-        alert("E-mail bestaat al bij een andere klant.");
-    } else {
-        alert(err.message || "Opslaan mislukt.");
-    }
-    setMsg(msg, "error", err.message || "Opslaan mislukt.");
+            try {
+                const id = await apiFetch("/klanten", {
+                    method: "POST",
+                    body: JSON.stringify({ naam, email })
+                });
+
+                klanten.push({ id, naam, email });
+                closeModal();
+                render();
+            } catch (err) {
+                if (err.status === 409) {
+                    setMsg(msg, "error", "E-mail bestaat al bij een andere klant.");
+                } else {
+                    setMsg(msg, "error", err.message || "Toevoegen mislukt.");
+                }
+            }
+        }
+    });
 }
-}
 
+/* ───────────── Verwijderen ───────────────────────────────── */
 async function onDelete(id) {
     const k = klanten.find(x => x.id === id);
     if (!window.confirm(`Klant “${k?.naam ?? id}” verwijderen?`)) return;
+
     try {
         await apiFetch(`/klanten/${id}`, { method: "DELETE" });
         klanten = klanten.filter(x => x.id !== id);
@@ -216,65 +311,4 @@ async function onDelete(id) {
     } catch (err) {
         alert(err.message || "Verwijderen mislukt.");
     }
-}
-
-/* ────────────────── Create-popover (header) ───────────────── */
-function openCreatePopover() {
-    if (!isAdmin) return;
-    const slot = qs("#adminBlok .create-slot");
-    openPopover(slot, "create", `
-    <div class="popover" style="right:0; top:48px; width:420px;">
-      <div class="row" style="grid-template-columns: 100px 1fr;">
-        <label>Naam</label>
-        <input type="text" id="new-naam">
-      </div>
-      <div class="row" style="grid-template-columns: 100px 1fr;">
-        <label>Email</label>
-        <input type="text" id="new-email">
-      </div>
-      <div class="row" style="grid-template-columns: 1fr auto auto;">
-        <div></div>
-        <button type="button" class="btn-cancel-create">Annuleren</button>
-        <button type="button" class="btn-create">Toevoegen</button>
-      </div>
-      <p id="createMsg" class="form-msg" style="margin-top:6px;"></p>
-    </div>
-  `);
-
-    slot.querySelector(".btn-cancel-create").addEventListener("click", () => clearInline(slot));
-    slot.querySelector(".btn-create").addEventListener("click", onCreate);
-}
-
-async function onCreate() {
-    const slot = qs("#adminBlok .create-slot");
-    const naam = qs("#new-naam").value.trim();
-    const email = qs("#new-email").value.trim();
-    const msg = qs("#createMsg");
-
-    if (!naam || !email) { setMsg(msg, "error", "Naam en e-mail zijn verplicht."); return; }
-    if (!window.confirm(`Klant “${naam}” toevoegen?`)) return;
-
-    try {
-        const id = await apiFetch("/klanten", { method: "POST", body: JSON.stringify({ naam, email }) });
-        klanten.push({ id, naam, email });
-        clearInline(slot);
-        render();
-    } catch (err) {
-        if (err.status === 409) {
-            alert("E-mail bestaat al bij een andere klant.");
-        } else {
-            alert(err.message || "Toevoegen mislukt.");
-        }
-        setMsg(msg, "error", err.message || "Toevoegen mislukt.");
-    }
-}
-
-/* ───────────────────── Small UI helper ───────────────────── */
-function setMsg(el, type, text) {
-    if (!el) return;
-    el.textContent = text || "";
-    el.classList.remove("error", "ok");
-    if (!text) return;
-    if (type === "error") el.classList.add("error");
-    if (type === "ok")    el.classList.add("ok");
 }

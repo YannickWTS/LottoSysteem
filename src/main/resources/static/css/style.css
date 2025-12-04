@@ -1,90 +1,843 @@
-/* Basisinstellingen */
+/* =========================
+   style.css — samengevoegd met kleurherstel
+   ========================= */
+
+/* Thema en variabelen */
+:root {
+    --bg: #f4f6fb;
+    --bg-page: #f4f6f8;
+    --bg-page-alt: #f2f4f8;
+    --card: #ffffff;
+    --text: #0f172a;
+    --muted: #64748b;
+
+    /* borders */
+    --border: #838383; /* generiek */
+    --border-light: #e5e7eb; /* klanten */
+
+    /* accenten (generiek) */
+    --primary: #2563eb;
+    --primary-weak: #e8f0ff;
+    --primary-strong: #1d4ed8;
+
+    /* login */
+    --primary-alt: #0077cc;
+    --primary-alt-dark: #005fa3;
+
+    /* danger/warn */
+    --danger: #b91c1c;
+    --danger-bg: #ffe9e9;
+    --warn: #fff3d6;
+
+    /* schaduw / radius / spacing */
+    --shadow-1: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-2: 0 10px 25px rgba(15, 23, 42, 0.06);
+    --shadow-3: 0 12px 32px rgba(0, 0, 0, 0.14);
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --pad: 16px;
+
+    --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans";
+}
+
+/* Basisreset */
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+}
+
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f6f8;
+    font-family: var(--font-sans);
+    background-color: var(--bg);
+    color: var(--text);
     margin: 0;
     padding: 0;
+}
+
+/* Componenten */
+.card {
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+    padding: 22px;
+    margin: 18px 0;
+    overflow: hidden;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+label {
+    display: block;
+    margin-bottom: .5rem;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #fff;
+    font-size: 1rem;
+    outline: none;
+}
+
+input:focus, textarea:focus, select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-weak);
+}
+
+/* Layout wrapper & pagina header (voor alle pagina's) */
+.wrap {
+    max-width: 1080px;
+    margin: 40px auto;
+    padding: 0 14px;
+}
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.top h1 {
+    font-size: 40px;
+    letter-spacing: .2px;
+}
+
+
+/* Buttons (neutraal baseline, accenten per pagina hieronder) */
+button {
+    font-family: inherit;
+    border: 0;
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    cursor: pointer;
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.15);
+    transition: transform .06s ease, filter .15s ease;
+}
+
+button:hover {
+    filter: brightness(.98);
+}
+
+button:active {
+    transform: translateY(1px);
+}
+
+button.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+button[disabled] {
+    opacity: .6;
+    cursor: not-allowed;
+    filter: grayscale(20%);
+}
+
+#btnTerug {
+    background: #fff;
+    color: var(--muted);
+    box-shadow: var(--shadow-2);
+}
+
+/* Badges / actions */
+.action-list {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.action-link {
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-weight: 600;
+    box-shadow: 0 1px 6px rgba(37, 99, 235, 0.14);
+    cursor: pointer;
+}
+
+.action-link.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+.role-pill {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: #fff;
+    font-weight: 600;
+    min-width: 78px;
+    text-align: center;
+}
+
+/* Tabel */
+.t {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 8px;
+}
+
+.t thead th {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    color: var(--muted);
+    text-align: left;
+    padding: 0 14px 8px;
+}
+
+.t tbody tr {
+    background: #fff;
+    box-shadow: var(--shadow-2);
+    border-radius: var(--radius-md);
+}
+
+.t tbody tr td {
+    padding: 14px;
+}
+
+.t tbody tr:hover {
+    outline: 2px solid rgba(37, 99, 235, 0.08);
+}
+
+.t td.actions-cell {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.t td.actions-cell .action-list {
+    margin-left: auto;
+    flex-wrap: nowrap;
+}
+
+.table-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 6px;
+}
+
+.table-scroll .t {
+    min-width: 900px;
+}
+
+.table-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+/* Combo dropdown (klantselectie op alle pagina's) */
+.combo {
+    position: relative;
+    width: 100%;
+}
+
+.combo-list {
+    position: absolute;
+    top: 46px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-2);
+    max-height: 280px;
+    overflow: auto;
+    z-index: 20;
+}
+
+.combo-item {
+    padding: 10px 12px;
+    cursor: pointer;
+}
+
+.combo-item:hover,
+.combo-item.active {
+    background: var(--primary-weak);
+}
+
+/* Utilities */
+.hidden {
+    display: none;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.form-msg {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.form-msg.error {
+    color: #b91c1c;
+}
+
+.form-msg.ok {
+    color: #16a34a;
+}
+
+/* =========================
+   Pagina-specifiek
+   ========================= */
+
+/* Login (gebruik primaire alt-blauw) */
+body.page-login {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
+    background-color: var(--bg-page);
 }
 
-/* Container voor het loginformulier */
-.login-container {
-    background-color: #ffffff;
-    padding: 2.5rem 3rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    width: 100%;
+/* login container */
+body.page-login .login-container {
     max-width: 400px;
-    box-sizing: border-box;
+    width: 100%;
+    padding: 2.5rem 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-1);
+    background: var(--card);
 }
 
-/* Titel */
-.login-container h1 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
+/* login titel */
+body.page-login .login-container h1 {
+    margin: 0 0 1.5rem;
     font-size: 1.8rem;
-    color: #333;
     text-align: center;
+    color: #333;
 }
 
-/* Labels en invoervelden */
-label {
-    display: block;
-    margin-bottom: 0.5rem;
+/* login labels (zoals originele css) */
+body.page-login label {
     color: #555;
-    font-weight: 500;
 }
 
-input[type="text"],
-input[type="password"] {
-    width: 100%;
-    padding: 0.7rem;
+/* login inputs */
+body.page-login input,
+body.page-login select,
+body.page-login textarea {
+    border-color: #ccc;
+    border-radius: 8px;
+    padding: .7rem;
     margin-bottom: 1.2rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-sizing: border-box;
-    font-size: 1rem;
-    transition: border-color 0.2s ease;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus {
-    border-color: #0077cc;
-    outline: none;
+body.page-login input:focus {
+    border-color: var(--primary-alt);
+    box-shadow: none;
 }
 
-/* Login-knop */
-button[type="submit"] {
+/* login-knop */
+body.page-login button[type="submit"] {
     width: 100%;
-    background-color: #0077cc;
-    color: white;
-    border: none;
-    padding: 0.8rem;
-    font-size: 1rem;
+    background: var(--primary-alt);
+    color: #fff;
     border-radius: 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+    padding: .8rem;
+    font-size: 1rem;
+    box-shadow: none; /* geen globale box-shadow op login-knop */
 }
 
-button[type="submit"]:hover {
-    background-color: #005fa3;
+body.page-login button[type="submit"]:hover {
+    background: var(--primary-alt-dark);
 }
 
-/* Feedbacktekst */
-#error,
-#resultaat {
+/* feedbacktekst login */
+body.page-login #error,
+body.page-login #resultaat {
     margin-top: 1rem;
     font-size: 0.95rem;
     text-align: center;
 }
 
-.error {
+body.page-login .error {
     color: #d93025;
 }
 
-.success {
+body.page-login .success {
     color: #0f9d58;
+}
+
+/* ===== Logout button (welkom-stijl) ===== */
+.btn-logout {
+    background: #ff4d4f;       /* dezelfde rode tint als welkom */
+    color: #fff;
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background .2s ease, transform .15s ease;
+    box-shadow: 0 4px 10px rgba(255, 77, 79, 0.25);
+}
+
+.btn-logout:hover {
+    background: #e04345;       /* hover tint van welkom */
+    transform: translateY(-1px);
+}
+
+.btn-logout:active {
+    background: #c73437;
+    transform: translateY(0);
+}
+
+
+
+/* Welkom (logout = danger rood, quote accent-alt) */
+body.page-welkom {
+    background: var(--bg-page-alt);
+}
+
+body.page-welkom .container {
+    max-width: 900px;
+    margin: 100px auto 40px;
+    padding: 30px;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+}
+
+body.page-welkom h1 {
+    font-size: 42px;
+    text-align: center;
+    margin-bottom: 54px;
+}
+
+body.page-welkom .secondary {
+    font-size: 18px;
+    text-align: right;
+    color: var(--muted);
+    margin: 5px;
+}
+
+body.page-welkom #logoutBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff4d4f;
+    color: #fff;
+    padding: 8px 16px;
+    font-weight: bold;
+    border-radius: 6px;
+}
+
+body.page-welkom #logoutBtn:hover {
+    background: #e04345;
+}
+
+body.page-welkom #quote {
+    font-size: 18px;
+    color: var(--primary-alt);
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+}
+
+body.page-welkom .quote {
+    padding-bottom: 35px;
+}
+
+/* Gebruiker (accent = primary) */
+body.page-gebruiker .wrap {
+    max-width: 1080px;
+    margin: 40px auto;
+    padding: 0 14px;
+}
+
+body.page-gebruiker .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+body.page-gebruiker .top h1 {
+    font-size: 40px;
+    letter-spacing: .2px;
+}
+
+/* form fields */
+body.page-gebruiker input,
+body.page-gebruiker select {
+    border-color: var(--border);
+}
+
+body.page-gebruiker input:focus,
+body.page-gebruiker select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-weak);
+}
+
+/* buttons in gebruiker */
+body.page-gebruiker button {
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .15);
+}
+
+body.page-gebruiker #btnNieuweUser {
+    background: var(--primary-weak);
+}
+
+/* danger button behoud */
+body.page-gebruiker button.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    box-shadow: 0 2px 8px rgba(185, 28, 28, .12);
+}
+
+/* tabel en hover */
+body.page-gebruiker .t tbody tr:hover {
+    outline: 2px solid rgba(37, 99, 235, .08);
+}
+
+/* details/summary */
+body.page-gebruiker details {
+    margin-top: 6px;
+}
+
+body.page-gebruiker details summary {
+    list-style: none;
+    cursor: pointer;
+    color: var(--muted);
+    font-weight: 700;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px;
+    border-radius: 10px;
+}
+
+body.page-gebruiker details summary::before {
+    content: "▸";
+    transition: transform .15s ease;
+    color: var(--primary-strong);
+}
+
+body.page-gebruiker details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+body.page-gebruiker details[open] summary {
+    background: #f8fafc;
+    color: var(--primary-strong);
+}
+
+/* inline editor */
+body.page-gebruiker .inline-slot {
+    margin-top: 6px;
+    position: relative;
+}
+
+body.page-gebruiker .inline-editor {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-2);
+    padding: 10px;
+}
+
+body.page-gebruiker .inline-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+body.page-gebruiker .inline-row input[type=password],
+body.page-gebruiker .inline-row select {
+    max-width: 220px;
+}
+
+body.page-gebruiker .inline-row .spacer {
+    flex: 1;
+}
+
+/* actions */
+body.page-gebruiker .action-list {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+body.page-gebruiker .action-link {
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    box-shadow: 0 1px 6px rgba(37, 99, 235, .14);
+}
+
+body.page-gebruiker .action-link.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    box-shadow: 0 1px 6px rgba(185, 28, 28, .12);
+}
+
+body.page-gebruiker .t td.actions-cell .action-list {
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
+/* table scroll min-width */
+body.page-gebruiker .table-scroll .t {
+    min-width: 1000px;
+}
+
+body.page-gebruiker .table-scroll thead th {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    z-index: 1;
+}
+
+/* filter */
+.filter {
+    color: black;
+}
+
+/* Klanten (border = licht, accenten = primary) */
+body.page-klanten .wrap {
+    max-width: 1080px;
+    margin: 40px auto;
+    padding: 0 14px;
+}
+
+body.page-klanten .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+body.page-klanten .top h1 {
+    font-size: 40px;
+    letter-spacing: .2px;
+}
+
+body.page-klanten .card {
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-2);
+}
+
+body.page-klanten .card h2 {
+    font-size: 22px;
+    margin: 0 0 14px;
+}
+
+body.page-klanten label {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0;
+    color: var(--muted);
+}
+
+body.page-klanten input[type=text],
+body.page-klanten input[type=password] {
+    max-width: 260px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+}
+
+body.page-klanten input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px var(--primary-weak);
+}
+
+body.page-klanten .card button {
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    box-shadow: 0 2px 8px rgba(37, 99, 235, .15);
+}
+
+body.page-klanten.card button.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+    box-shadow: 0 2px 8px rgba(185, 28, 28, .12);
+}
+
+body.page-klanten .t {
+    border-spacing: 0 8px;
+}
+
+body.page-klanten .t thead th {
+    color: var(--muted);
+}
+
+body.page-klanten .t tbody tr {
+    background: #fff;
+    box-shadow: var(--shadow-2);
+    border-radius: var(--radius-md);
+}
+
+body.page-klanten .t tbody tr:hover {
+    outline: 2px solid rgba(37, 99, 235, .08);
+}
+
+body.page-klanten .action-list {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+body.page-klanten .action-link {
+    background: var(--primary-weak);
+    color: var(--primary-strong);
+    box-shadow: 0 1px 6px rgba(37, 99, 235, .14);
+}
+
+body.page-klanten .action-link.danger {
+    background: var(--danger-bg);
+    color: var(--danger);
+}
+
+body.page-klanten .inline-slot {
+    margin-top: 6px;
+}
+
+body.page-klanten .inline-editor {
+    background: #fff;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-2);
+    padding: 10px;
+}
+
+body.page-klanten .inline-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+body.page-klanten .inline-row input[type=text] {
+    max-width: 220px;
+}
+
+body.page-klanten .inline-row .spacer {
+    flex: 1;
+}
+
+body.page-klanten .t td.actions-cell {
+    position: relative;
+}
+
+body.page-klanten .t td.actions-cell .action-list {
+    margin-left: auto;
+    flex-wrap: nowrap;
+}
+
+body.page-klanten #adminBlok .adminHead {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+body.page-klanten #adminBlok .create-slot {
+    position: absolute;
+    top: 0;
+    right: 0;
+    pointer-events: none;
+}
+
+/* Extra: specifieke quotes en lege sectie overal beschikbaar */
+#quote {
+    font-size: 18px;
+    color: var(--primary-alt);
+    margin-bottom: 30px;
+    font-weight: 600;
+    text-align: center;
+}
+
+.lege-sectie {
+    margin-top: 40px;
+    padding: 20px;
+    text-align: center;
+    color: #888;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    font-style: italic;
+}
+
+/* ===== Bestelling formulier extra styles ===== */
+.betaald-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+/* ========== Modal Overlay ========== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.35); /* subtiele donkerblauwe tint */
+    backdrop-filter: blur(4px);         /* zachte blur */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+    transition: opacity 0.25s ease;
+    opacity: 1;
+}
+
+.modal-overlay.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ========== Modal Box ========== */
+.modal-box,
+.modal {
+    background: rgba(255, 255, 255, 0.73);
+    border-radius: 12px;
+    padding: 28px 32px;
+    max-width: 420px;
+    width: 95%;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+    animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.96); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
 }

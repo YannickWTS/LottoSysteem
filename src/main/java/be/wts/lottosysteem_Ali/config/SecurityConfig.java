@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // statische bestanden + login-endpoint
                         .requestMatchers("/", "/index.html", "/css/**", "/js/**",
-                                "/data/**", "/auth/login", "/img/**").permitAll()
+                                "/data/**", "/auth/login", "/img/**", "/updates/**").permitAll()
 
                         // jouw HTML-pagina's (frontend)
                         .requestMatchers("/index.html", "/welkom.html", "/gebruikers.html").permitAll()
