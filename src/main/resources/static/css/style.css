@@ -841,3 +841,14 @@ body.page-klanten #adminBlok .create-slot {
     from { transform: scale(0.96); opacity: 0; }
     to   { transform: scale(1); opacity: 1; }
 }
+
+.app-version {
+    position: fixed;
+    right: 16px;
+    bottom: 12px;
+    font-size: 13px;
+    color: #94a3b8; /* zacht blauwgrijs */
+    opacity: 0.7;
+    user-select: none;
+    font-weight: 500;
+}

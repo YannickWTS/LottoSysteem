@@ -1,8 +1,18 @@
 "use strict";
-console.log("✅ login.js is geladen");
-document.title = ("version").innerText = "V" + window.appInfo.version;
+console.log("✅ login.js geladen");
 
 document.addEventListener("DOMContentLoaded", function () {
+
+    // 1. Versie rechtsonder instellen (Electron)
+    const versionSpan = document.getElementById("version");
+
+    if (versionSpan && window.appInfo && window.appInfo.version) {
+        versionSpan.innerText = "v" + window.appInfo.version;
+    } else {
+        console.log("ℹ️ Geen appInfo.version gevonden (waarschijnlijk browser mode)");
+    }
+
+    // 2. Login logica
     const form = document.getElementById("loginForm");
     if (!form) return;
 
@@ -10,8 +20,8 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
 
         const gebruikersnaam = document.getElementById("gebruikersnaam").value.trim();
-        const wachtwoord    = document.getElementById("wachtwoord").value;
-        const resultaat     = document.getElementById("resultaat");
+        const wachtwoord = document.getElementById("wachtwoord").value;
+        const resultaat = document.getElementById("resultaat");
 
         const loginResponse = await fetch("/auth/login", {
             method: "POST",
@@ -26,15 +36,16 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ✅ Haal nu jouw gegevens op (id + rol) en bewaar die
         const meRes = await fetch(`/gebruiker/${encodeURIComponent(gebruikersnaam)}`, {
             credentials: "include"
         });
+
         if (!meRes.ok) {
-            alert("Kon gebruikersgegevens niet ophalen na login.");
+            alert("Kon gebruikersgegevens niet ophalen.");
             return;
         }
-        const me = await meRes.json(); // Verwacht {id, gebruikersnaam, rol, ... }
+
+        const me = await meRes.json();
 
         localStorage.setItem("gebruiker", me.gebruikersnaam);
         localStorage.setItem("gebruikerId", String(me.id));
