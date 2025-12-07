@@ -9,10 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>be.wts</groupId>
-    <artifactId>LottoSysteem_Ali</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <name>LottoSysteem_Ali</name>
-    <description>LottoSysteem_Ali</description>
+    <artifactId>LottoSysteem</artifactId>
+    <name>LottoSysteem</name>
+    <description>LottoSysteem</description>
     <url/>
     <licenses>
         <license/>
