@@ -1,18 +1,21 @@
 "use strict";
-console.log("✅ login.js geladen");
+console.log("✅ login.js is geladen");
 
-document.addEventListener("DOMContentLoaded", function () {
+// --- Versietekst & titel instellen ---
+(function initVersion() {
+    const version = window.APP_VERSION || "DEV";
+    const badge   = document.getElementById("version-badge");
 
-    // 1. Versie rechtsonder instellen (Electron)
-    const versionSpan = document.getElementById("version");
-
-    if (versionSpan && window.appInfo && window.appInfo.version) {
-        versionSpan.innerText = "v" + window.appInfo.version;
-    } else {
-        console.log("ℹ️ Geen appInfo.version gevonden (waarschijnlijk browser mode)");
+    if (badge) {
+        badge.textContent = "v" + version;
     }
 
-    // 2. Login logica
+    // Pagina-titel ook meegeven
+    document.title = `LottoSysteem v${version}`;
+})();
+
+// --- Login logica ---
+document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("loginForm");
     if (!form) return;
 
@@ -20,8 +23,8 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
 
         const gebruikersnaam = document.getElementById("gebruikersnaam").value.trim();
-        const wachtwoord = document.getElementById("wachtwoord").value;
-        const resultaat = document.getElementById("resultaat");
+        const wachtwoord    = document.getElementById("wachtwoord").value;
+        const resultaat     = document.getElementById("resultaat");
 
         const loginResponse = await fetch("/auth/login", {
             method: "POST",
@@ -39,12 +42,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const meRes = await fetch(`/gebruiker/${encodeURIComponent(gebruikersnaam)}`, {
             credentials: "include"
         });
-
         if (!meRes.ok) {
-            alert("Kon gebruikersgegevens niet ophalen.");
+            alert("Kon gebruikersgegevens niet ophalen na login.");
             return;
         }
-
         const me = await meRes.json();
 
         localStorage.setItem("gebruiker", me.gebruikersnaam);
