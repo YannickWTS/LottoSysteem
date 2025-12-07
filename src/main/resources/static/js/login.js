@@ -1,5 +1,6 @@
 "use strict";
 console.log("✅ login.js is geladen");
+document.title = ("version").innerText = "V" + window.appInfo.version;
 
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("loginForm");
@@ -33,7 +34,7 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Kon gebruikersgegevens niet ophalen na login.");
             return;
         }
-        const me = await meRes.json(); // verwacht { id, gebruikersnaam, rol, ... }
+        const me = await meRes.json(); // Verwacht {id, gebruikersnaam, rol, ... }
 
         localStorage.setItem("gebruiker", me.gebruikersnaam);
         localStorage.setItem("gebruikerId", String(me.id));
