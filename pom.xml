@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>be.wts</groupId>
-    <artifactId>LottoSysteem</artifactId>
-    <name>LottoSysteem</name>
-    <description>LottoSysteem</description>
+    <artifactId>lottosysteem</artifactId>
+    <name>lottosysteem</name>
+    <description>lottosysteem</description>
     <url/>
     <licenses>
         <license/>
