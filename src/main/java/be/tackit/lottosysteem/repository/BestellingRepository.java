@@ -102,4 +102,28 @@ public class BestellingRepository {
                 .query(Long.class)
                 .single();
     }
+
+    /**
+     * Haalt alle unieke e-mailadressen op van klanten die een betaalde
+     * bestelling hebben voor de opgegeven maand.
+     *
+     * @param maand bv. "mei" of "december 2025"
+     *              -> dit moet exact overeenkomen met wat jij in BESTELLING.MAAND bewaart.
+     */
+    public List<String> findEmailsVanBetaaldeKlantenVoorMaand(String maand) {
+        String sql = """
+                select distinct k.email
+                from bestelling b
+                join klant k on k.id = b.klant_id
+                where b.betaald = true
+                and b.maand = ?
+                and k.email is not null
+                """;
+
+        return jdbcClient.sql(sql)
+                .param(maand)
+                .query(String.class)
+                .list();
+    }
 }
+

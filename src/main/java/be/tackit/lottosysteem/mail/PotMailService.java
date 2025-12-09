@@ -1,0 +1,27 @@
+package be.tackit.lottosysteem.mail;
+
+import be.tackit.lottosysteem.repository.BestellingRepository;
+import jakarta.mail.MessagingException;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
+public class PotMailService {
+
+    private final BestellingRepository bestellingRepository;
+    private final MailService mailService;
+
+    public PotMailService(BestellingRepository bestellingRepository, MailService mailService) {
+        this.bestellingRepository = bestellingRepository;
+        this.mailService = mailService;
+    }
+
+    public void verstuurPotMail(String maand, String maandLabel, MultipartFile attachment)
+            throws MessagingException, IOException {
+
+        List<String> emails = bestellingRepository.findEmailsVanBetaaldeKlantenVoorMaand(maand);
+
+        mailService.sendPotMailWithAttachment(emails, maandLabel, attachment);
+    }
+}
