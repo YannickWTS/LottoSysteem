@@ -1,7 +1,7 @@
 package be.tackit.lottosysteem.controller;
 
 import be.tackit.lottosysteem.dto.*;
-import be.wts.lottosysteem.dto.*;
+import be.tackit.lottosysteem.dto.*;
 import be.tackit.lottosysteem.exception.GebruikerNietGevondenException;
 import be.tackit.lottosysteem.exception.WachtwoordUpdateException;
 import be.tackit.lottosysteem.model.Gebruiker;
