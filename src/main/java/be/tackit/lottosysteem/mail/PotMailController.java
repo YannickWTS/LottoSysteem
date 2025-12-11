@@ -27,10 +27,11 @@ public class PotMailController {
     public void verstuurPotMail(
             @RequestParam("maandCode") String maandCode,
             @RequestParam("maandLabel") String maandLabel,
+            @RequestParam("spelType") String spelType,
             @RequestPart("file") MultipartFile file
             // later kan hier ook nog spelType bij
     ) throws MessagingException, IOException {
 
-        potMailService.verstuurPotMail(maandCode, maandLabel, file);
+        potMailService.verstuurPotMail(maandCode, maandLabel, spelType, file);
     }
 }

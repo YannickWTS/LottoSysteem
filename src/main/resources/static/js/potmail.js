@@ -8,6 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const maandSelect = document.getElementById("maandSelect");
+    const spelTypeSelect = document.getElementById("spelTypeSelect");
     const status = document.getElementById("status");
     const form = document.getElementById("potmail-form");
 
@@ -53,6 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const formData = new FormData();
         formData.append("maandCode", maandSelect.value);
         formData.append("maandLabel", maandSelect.value);
+        formData.append("spelType", spelTypeSelect.value);
         formData.append("file", file);
 
         try {
