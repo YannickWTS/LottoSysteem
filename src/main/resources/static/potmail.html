@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pot Mail</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="/img/aIcon.ico">
+</head>
+<body>
+<header>
+    <h1>Pot mail versturen</h1>
+    <p>Selecteer een maand en upload de afbeelding van het lot.</p>
+</header>
+
+<main>
+    <form id="potmail-form">
+
+        <label for="maandSelect">Maand</label>
+        <select id="maandSelect" name="maand"></select>
+
+        <label for="fileInput">Afbeelding van Lotto biljet</label>
+        <input type="file" id="fileInput" name="file" accept="image/*" required>
+
+        <button type="submit">Verstuur pot mail</button>
+    </form>
+
+    <p id="status"></p>
+</main>
+<script src="/js/potmail.js"></script>
+</body>
+</html>

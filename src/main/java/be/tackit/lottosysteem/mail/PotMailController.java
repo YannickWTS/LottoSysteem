@@ -8,7 +8,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/pot-mail")
+@RequestMapping("potmail")   // ⬅️ zoals "gebruiker", "klant", ...
 public class PotMailController {
 
     private final PotMailService potMailService;
@@ -17,12 +17,18 @@ public class PotMailController {
         this.potMailService = potMailService;
     }
 
-    @PostMapping(path = "/send", consumes = "multipart/form-data")
+    @GetMapping("ping")
+    public String ping() {
+        return "pong";
+    }
+
+    @PostMapping(path = "send", consumes = "multipart/form-data")
     @PreAuthorize("hasRole('ADMIN')")
     public void verstuurPotMail(
             @RequestParam("maandCode") String maandCode,
             @RequestParam("maandLabel") String maandLabel,
             @RequestPart("file") MultipartFile file
+            // later kan hier ook nog spelType bij
     ) throws MessagingException, IOException {
 
         potMailService.verstuurPotMail(maandCode, maandLabel, file);
