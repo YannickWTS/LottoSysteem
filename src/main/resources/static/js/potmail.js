@@ -24,8 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
         const maandIndex = d.getMonth();
         const maandNaam = maanden[maandIndex];
 
-        const maandCode = `${maandNaam} ${jaar}`; // komt overeen met BESTELLING.MAAND
-        return maandCode;
+         // komt overeen met BESTELLING.MAAND
+        return `${maandNaam} ${jaar}`;
     }
 
     const opties = [buildMaand(0), buildMaand(1)];
