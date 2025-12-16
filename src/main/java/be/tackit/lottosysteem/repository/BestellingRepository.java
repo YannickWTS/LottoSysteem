@@ -72,7 +72,7 @@ public class BestellingRepository {
                     update bestelling
                     set betaald = ?,
                         laatste_update = ?,
-                        laatste_bewerker_id = ?
+                        medewerker_id = ?
                     where id = ?
                 """;
         return jdbcClient.sql(sql)
@@ -117,7 +117,7 @@ public class BestellingRepository {
         join klant k on k.id = b.klant_id
         where b.betaald = true
           and b.maand = ?
-          and b.speltype = ?
+          and lower(b.speltype) = lower(?)
           and k.email is not null
         """;
 
