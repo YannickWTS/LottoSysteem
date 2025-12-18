@@ -11,6 +11,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const spelTypeSelect = document.getElementById("spelTypeSelect");
     const status = document.getElementById("status");
     const form = document.getElementById("potmail-form");
+    const fileInput = document.getElementById("fileInput");
+
+    // ---- Status helpers (matcht jouw CSS: .form-msg.ok / .form-msg.error) ----
+    function resetStatus() {
+        status.textContent = "";
+        status.classList.add("hidden");
+        status.classList.remove("ok", "error");
+    }
+
+    function showOk(msg) {
+        status.textContent = msg;
+        status.classList.remove("hidden");
+        status.classList.remove("error");
+        status.classList.add("ok");
+    }
+
+    function showError(msg) {
+        status.textContent = msg;
+        status.classList.remove("hidden");
+        status.classList.remove("ok");
+        status.classList.add("error");
+    }
 
     // ---- Maanden vullen ----
     const maanden = [
@@ -21,33 +43,31 @@ document.addEventListener("DOMContentLoaded", () => {
     function buildMaand(offset) {
         const now = new Date();
         const d = new Date(now.getFullYear(), now.getMonth() + offset, 1);
-        const jaar = d.getFullYear();
-        const maandIndex = d.getMonth();
-        const maandNaam = maanden[maandIndex];
-
-         // komt overeen met BESTELLING.MAAND
-        return `${maandNaam} ${jaar}`;
+        return `${maanden[d.getMonth()]} ${d.getFullYear()}`;
     }
 
-    const opties = [buildMaand(0), buildMaand(1)];
-
-    opties.forEach(m => {
+    [buildMaand(0), buildMaand(1)].forEach(m => {
         const opt = document.createElement("option");
         opt.value = m;
         opt.textContent = m;
         maandSelect.appendChild(opt);
     });
 
+    // start proper
+    resetStatus();
+
     // ---- Form submit ----
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        status.textContent = "";
+        resetStatus();
 
-        const fileInput = document.getElementById("fileInput");
         const file = fileInput.files[0];
-
         if (!file) {
-            status.textContent = "Selecteer een afbeelding.";
+            showError("Selecteer een afbeelding.");
+            return;
+        }
+        if (!spelTypeSelect.value) {
+            showError("Kies een speltype.");
             return;
         }
 
@@ -64,13 +84,14 @@ document.addEventListener("DOMContentLoaded", () => {
             });
 
             if (response.ok) {
-                status.textContent = "Pot mail is verzonden!";
+                showOk("Pot mail is verzonden!");
+                form.reset();
             } else {
-                status.textContent = "Er ging iets mis tijdens het versturen.";
+                showError("Er ging iets mis tijdens het versturen.");
             }
         } catch (err) {
             console.error(err);
-            status.textContent = "Netwerkfout bij versturen.";
+            showError("Netwerkfout bij versturen.");
         }
     });
 });
