@@ -84,6 +84,16 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
 
+        const ok = window.confirm(
+            `Pot mail versturen?\n\n` +
+            `Maand: ${maandSelect.value}\n` +
+            `Speltype: ${spelTypeSelect.value}\n` +
+            `Bestand: ${file.name}\n\n` +
+            `Deze mail wordt verstuurd naar alle BETALENDE klanten.`
+        );
+
+        if (!ok) return;
+
         const formData = new FormData();
         formData.append("maandCode", maandSelect.value);
         formData.append("maandLabel", maandSelect.value);
