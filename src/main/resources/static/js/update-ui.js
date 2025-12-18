@@ -1,6 +1,39 @@
 "use strict";
 
 (function () {
+
+    // -------------------------------
+    // VERSION: badge + title zetten
+    // -------------------------------
+    async function initVersionUI() {
+        try {
+            // 1) probeer versie via Electron (preload)
+            if (window.appInfo && typeof window.appInfo.getVersion === "function") {
+                const v = await window.appInfo.getVersion();
+                window.APP_VERSION = v;
+                localStorage.setItem("APP_VERSION", v);
+            }
+
+            // 2) toon versie (ook als het DEV is)
+            const version = window.APP_VERSION || localStorage.getItem("APP_VERSION") || "DEV";
+
+            const badge = document.getElementById("version-badge");
+            if (badge) badge.textContent = `v${version}`;
+
+            document.title = `LottoSysteem v${version}`;
+
+        } catch (e) {
+            console.warn("Kon versie UI niet initialiseren:", e);
+        }
+    }
+
+    // run asap + na DOM
+    initVersionUI();
+    document.addEventListener("DOMContentLoaded", initVersionUI);
+
+    // -------------------------------
+    //         UPDATE BANNER
+    // -------------------------------
     function ensureBanner() {
         let el = document.getElementById('update-banner');
         if (el) return el;
@@ -49,7 +82,6 @@
 
             if (s.type === 'downloaded') {
                 show(`Update klaar (v${s.version}). Sluit de app om te installeren.`);
-                // Optional: na 15s banner weg
                 setTimeout(hide, 15000);
             }
 
@@ -58,7 +90,6 @@
             }
 
             if (s.type === 'none') {
-                // meestal niet tonen
                 hide();
             }
         });

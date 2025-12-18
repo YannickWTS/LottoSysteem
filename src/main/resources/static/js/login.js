@@ -1,19 +1,6 @@
 "use strict";
 console.log("✅ login.js is geladen");
 
-// --- Versietekst & titel instellen ---
-(function initVersion() {
-    const version = window.APP_VERSION || "DEV";
-    const badge   = document.getElementById("version-badge");
-
-    if (badge) {
-        badge.textContent = "v" + version;
-    }
-
-    // Pagina-titel ook meegeven
-    document.title = `LottoSysteem v${version}`;
-})();
-
 // --- Login logica ---
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("loginForm");
