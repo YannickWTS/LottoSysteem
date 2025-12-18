@@ -851,3 +851,13 @@ body.page-klanten #adminBlok .create-slot {
     opacity: 0.8;
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
+
+/* Admin-only tile (Pot mail) */
+.tile.admin-only{
+    background: rgba(255, 165, 0, 0.14); /* licht oranje */
+    border: 1px solid rgba(255, 165, 0, 0.25);
+}
+
+.tile.admin-only:hover{
+    background: rgba(255, 165, 0, 0.20);
+}

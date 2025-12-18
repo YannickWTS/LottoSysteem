@@ -1,39 +1,58 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="nl">
 <head>
-    <meta charset="UTF-8">
-    <title>Pot Mail</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="icon" href="/img/aIcon.ico">
+    <meta charset="utf-8"/>
+    <title>Pot mail</title>
+    <link rel="icon" href="/img/aIcon.ico"/>
+    <link rel="stylesheet" href="/css/style.css"/>
+    <script src="/js/potmail.js" defer></script>
 </head>
 <body>
-<header>
-    <h1>Pot mail versturen</h1>
-    <p>Selecteer een maand en upload de afbeelding van het lot.</p>
-</header>
+<main class="wrap">
+    <div class="top">
+        <h1>Pot mail versturen</h1>
+        <div class="action-list">
+            <button id="btnTerug" onclick="location.href='welkom.html'">Terug</button>
+            <button id="btnLogout" class="btn-logout">Afmelden</button>
+        </div>
+    </div>
 
-<main>
-    <form id="potmail-form">
+    <section class="card">
+        <h2>Pot mail</h2>
+        <p>Selecteer een maand, kies het speltype en upload de afbeelding van het lot.</p>
 
-        <label for="maandSelect">Maand</label>
-        <select id="maandSelect" name="maand"></select>
+        <form id="potmail-form">
+            <div class="grid-2">
+                <div>
+                    <label>Maand - Jaar
+                        <select id="maandSelect" name="maand"></select>
+                    </label>
 
-        <label for="spelTypeSelect">Speltype</label>
-        <select id="spelTypeSelect" class="form-control">
-            <option value="Lotto">Lotto</option>
-            <option value="Lotto Extra">Lotto Extra</option>
-            <option value="Euromillions">Euromillions</option>
-            <option value="Euromillions Extra">Euromillions Extra</option>
-        </select>
+                    <label>Speltype
+                        <select id="spelTypeSelect" name="spelType" required>
+                            <option value="">- kies -</option>
+                            <option>Lotto</option>
+                            <option>Lotto Extra</option>
+                            <option>EuroMillions</option>
+                            <option>EuroMillions Extra</option>
+                        </select>
+                    </label>
+                </div>
 
-        <label for="fileInput">Afbeelding van Lotto biljet</label>
-        <input type="file" id="fileInput" name="file" accept="image/*" required>
+                <div>
+                    <label>Afbeelding van lot
+                        <input type="file" id="fileInput" name="file" accept="image/*" required>
+                    </label>
 
-        <button type="submit">Verstuur pot mail</button>
-    </form>
+                    <p id="status" class="form-msg hidden" aria-live="polite"></p>
 
-    <p id="status"></p>
+                    <div class="form-actions">
+                        <button type="submit">Verstuur pot mail</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
 </main>
-<script src="/js/potmail.js"></script>
 </body>
 </html>
