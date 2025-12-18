@@ -19,11 +19,12 @@ public class PotMailService {
         this.mailService = mailService;
     }
 
-    public void verstuurPotMail(String maand, String maandLabel, String spelType, MultipartFile attachment)
-            throws MessagingException, IOException {
-
+    public void verstuurPotMail(String maand, String spelType, MultipartFile file) throws MessagingException, IOException {
         List<String> emails = bestellingRepository.findEmailsVoorPotMail(maand, spelType);
 
-        mailService.sendPotMailWithAttachment(emails, maandLabel, attachment);
+        for (String email : emails) {
+            mailService.sendPotMailWithAttachment(email, maand, spelType, file);
+        }
     }
+
 }

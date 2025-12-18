@@ -10,7 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 @Service
@@ -23,7 +23,7 @@ public class MailService {
     }
 
     /**
-     * eenvoudige testmail, zonder bijlagen.
+     * Eenvoudige testmail, zonder bijlagen.
      */
     public void sendPlainTextMail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -37,38 +37,40 @@ public class MailService {
     /**
      * Pot Mail: één mail naar alle ontvangers via BCC, met een afbeelding in bijlage.
      */
-    public void sendPotMailWithAttachment(List<String> recipients, String maandLabel, MultipartFile attachment) throws MessagingException, IOException {
-        if (recipients == null || recipients.isEmpty()) {
-            //niemand heeft betaald voor deze maand? dan geen mail verzenden.
-            return;
-        }
+    public void sendPotMailWithAttachment(String to, String maand, String spelType, MultipartFile file)
+            throws MessagingException, IOException {
 
+        // Speltype mooi labelen
+        String spelLabel = switch (spelType.toUpperCase()) {
+            case "LOTTO" -> "Lottopot";
+            case "LOTTO EXTRA" -> "Lottopot Extra";
+            case "EUROMILLIONS" -> "EuroMillions pot";
+            case "EUROMILLIONS EXTRA" -> "EuroMillions Extra pot";
+            default -> spelType + " pot";
+        };
+
+        String subject = spelLabel + " cijfers - " + maand;
+        String text = """
+        Beste,
+
+        In bijlage vind je de nummers voor de %s van %s.
+
+        Veel succes!
+        LottoSysteem – Ali
+        """.formatted(spelLabel.toLowerCase(), maand);
+
+        // bestaande code om mail + attachment te bouwen blijft hetzelfde
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
 
-        //ontvangers via BCC zodat ze elkaar niet kunnen zien.
-        helper.setBcc(recipients.toArray(String[]::new));
-        String subject = "Lottopot cijfers - " + maandLabel;
-
-        //-> klopt dit wel? de %s
-        String body = """
-                Beste,
-                
-                In bijlage vind je de nummers voor de lottopot van %s.
-                
-                Veel succes!
-                LottoSysteem – Ali
-                """.formatted(maandLabel);
-
+        helper.setTo(to);
         helper.setSubject(subject);
-        helper.setText(body, false);
+        helper.setText(text, false);
 
-        if (attachment != null && !attachment.isEmpty()) {
-            helper.addAttachment(
-                    Objects.requireNonNull(attachment.getOriginalFilename()),
-                    new ByteArrayResource(attachment.getBytes())
-            );
-        }
+        helper.addAttachment(
+                Objects.requireNonNull(file.getOriginalFilename()),
+                new ByteArrayResource(file.getBytes())
+        );
 
         mailSender.send(message);
     }
