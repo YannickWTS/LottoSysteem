@@ -7,6 +7,19 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    const btnLogout = document.getElementById("btnLogout");
+    if (btnLogout) {
+        btnLogout.addEventListener("click", async () => {
+            const ok = window.confirm("Afmelden en terug naar login?");
+            if (!ok) return;
+            try {
+                await fetch("/auth/logout", { method: "POST" });
+            } finally {
+                window.location.href = "index.html";
+            }
+        });
+    }
+
     const maandSelect = document.getElementById("maandSelect");
     const spelTypeSelect = document.getElementById("spelTypeSelect");
     const status = document.getElementById("status");
