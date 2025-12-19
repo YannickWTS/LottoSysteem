@@ -23,7 +23,7 @@ public class BestellingRepository {
         var sql = """
                 select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
                 from bestelling
-                order by id
+                order by id desc
                 """;
 
         return jdbcClient.sql(sql)
