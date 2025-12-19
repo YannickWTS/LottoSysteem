@@ -51,7 +51,7 @@ html, body {
 }
 
 body {
-    font-family: var(--font-sans);
+    font-family: var(--font-sans), sans-serif;
     background-color: var(--bg);
     color: var(--text);
     margin: 0;
@@ -842,7 +842,7 @@ body.page-klanten #adminBlok .create-slot {
     to   { transform: scale(1); opacity: 1; }
 }
 
-.page-login .version-badge {
+.version-badge {
     position: fixed;
     right: 1.5rem;
     bottom: 1rem;
