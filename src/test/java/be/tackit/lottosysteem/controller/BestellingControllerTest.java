@@ -7,6 +7,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.jdbc.Sql;
+import org.springframework.test.jdbc.JdbcTestUtils;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,7 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Transactional
-@AutoConfigureMockMvc(addFilters = false)
+@AutoConfigureMockMvc
+@Sql("/testdataGebruikers/gebruikers.sql")
+@WithMockUser(username = "jan")
+
 public class BestellingControllerTest {
     private final MockMvcTester mockMvcTester;
     private final JdbcClient jdbcClient;
@@ -27,34 +33,51 @@ public class BestellingControllerTest {
         this.jdbcClient = jdbcClient;
     }
 
-//    @Test
-//    void findAllGeeftAlleBestellingen() {
-//        var response = mockMvcTester.get()
-//                .uri("/bestelling");
-//        assertThat(response).hasStatusOk()
-//                .bodyJson()
-//                .extractingPath("length()")
-//                .isEqualTo(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE));
-//
-//    }
+    @Test
+    void findAllGeeftAlleBestellingen() {
+        var response = mockMvcTester.get()
+                .uri("/bestelling");
+        assertThat(response).hasStatusOk()
+                .bodyJson()
+                .extractingPath("length()")
+                .isEqualTo(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE));
 
-//    @Transactional
-//    @Test
-//    void addBestellingVoegtBestellingToe() throws Exception {
-//        var json = new ClassPathResource("/bestellingTestData/correcteBestelling.json")
-//                .getContentAsString(StandardCharsets.UTF_8);
-//        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
-//        var response = mockMvcTester.post()
-//                .uri("/bestelling")
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content(json);
-//        assertThat(response)
-//                .hasStatusOk()
-//                .bodyJson()
-//                .extractingPath("$")
-//                .isInstanceOf(Number.class);
-//        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE)).isEqualTo(aantalVoor + 1);
-//    }
+    }
+
+    @Test
+    void addBestellingVoegtBestellingToe() {
+        jdbcClient.sql("insert into klant(naam, email) values (?, ?)")
+                .param("TestKlant_" + System.nanoTime())
+                .param("test@tack.it")
+                .update();
+
+        long klantId = jdbcClient.sql("select max(id) from klant")
+                .query(Long.class)
+                .single();
+
+        var json = """
+        {
+          "klantId": %d,
+          "spelType": "Lotto",
+          "maand": "juli",
+          "betaald": true
+        }
+        """.formatted(klantId);
+
+        var aantalVoor = JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE);
+
+        var response = mockMvcTester.post()
+                .uri("/bestelling")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json)
+                .exchange();
+
+        assertThat(response).hasStatusOk();
+        assertThat(JdbcTestUtils.countRowsInTable(jdbcClient, BESTELLINGEN_TABLE))
+                .isEqualTo(aantalVoor + 1);
+    }
+
+
 
     @Test
     void addBestellingZonderKlantIdMislukt() throws Exception {

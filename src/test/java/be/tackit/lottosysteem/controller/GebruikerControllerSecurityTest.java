@@ -31,7 +31,7 @@ public class GebruikerControllerSecurityTest {
     //---------create---------
 
     @Test
-    @WithMockUser(username = "piet")
+    @WithMockUser(username = "jan")
     void createGeeft403AlsUserZonderAdminRol() throws Exception {
         var req = new NieuweGebruiker("sec_user_forbidden", "pw123", null);
         var resp = mvc.post()
