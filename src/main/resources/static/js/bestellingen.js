@@ -353,7 +353,6 @@ function renderBestellingen() {
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-      <td>${r.id}</td>
       <td>${r.klantNaam}</td>
       <td>${r.spelType}</td>
       <td>${r.maand}</td>
