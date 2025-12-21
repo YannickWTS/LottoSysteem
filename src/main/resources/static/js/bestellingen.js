@@ -52,26 +52,6 @@ function buildMaandOptions() {
     }
 }
 
-function resetKlantCombo() {
-    selectedKlantId = 0;
-
-    if (klantSearch) {
-        klantSearch.value = "";
-        klantSearch.blur(); // forceer focus-loss
-    }
-
-    if (klantList) {
-        renderKlantList(""); // sluit lijst zoals je normale flow
-    }
-
-    // kleine kick zodat Electron zeker "her paint"
-    requestAnimationFrame(() => {
-        klantSearch?.focus();
-        klantSearch?.blur(); // en terug loslaten, zodat user zelf klikt/typt
-    });
-}
-
-
 // Format ISO LocalDateTime -> "DD/MM/YYYY HH:MM" (nl-BE, zonder seconden)
 function fmtLocalDateTimeToNl(d) {
     if (!d) return "";
@@ -254,11 +234,6 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Extra bulletproof: bij focus verlies / resize / scroll dropdown sluiten
-window.addEventListener("blur", () => klantList?.classList.add("hidden"));
-window.addEventListener("resize", () => klantList?.classList.add("hidden"));
-window.addEventListener("scroll", () => klantList?.classList.add("hidden"), true);
-
 
 /* ============================================================================
  * Validatie
@@ -419,8 +394,6 @@ document.addEventListener("click", async (e) => {
         return;
     }
 
-
-
     // Verwijderen (alleen zichtbaar voor admin)
     if (e.target.matches(".act-del")) {
         const id = e.target.dataset.id;
@@ -457,21 +430,25 @@ form.addEventListener("submit", async (e) => {
     const r = await api("/bestelling", { method: "POST", body: JSON.stringify(payload) });
     if (r.ok) {
         form.reset();
-
-        resetKlantCombo();     // ✅ combo hard resetten (dit is de fix)
+        // Reset UI
+        selectedKlantId = 0;
+        klantSearch.value = "";
         buildMaandOptions();   // opnieuw huidige + 2 volgende maanden
         validate();
-
         await loadBestellingen();
+        // feedback zonder alert()
+        setMsg(formMsg, "ok", "Bestelling opgeslagen ✔");
+        setTimeout(() => setMsg(formMsg, "", ""), 2000);
 
-        // TIP: alert pas op het einde (minder kans op focus/overlay issues)
-        alert("Bestelling opgeslagen.");
+        // focus terug op klant input (helpt Electron)
+        requestAnimationFrame(() => klantSearch.focus());
+
     } else if (r.status === 401) {
         location.href = "/index.html";
     } else if (r.status === 400) {
-        alert("Validatiefout. Controleer de velden.");
+        setMsg(formMsg, "error", "Validatiefout. Controleer de velden.");
     } else {
-        alert("Opslaan mislukt.");
+        setMsg(formMsg, "error", "Opslaan mislukt.");
     }
 });
 
