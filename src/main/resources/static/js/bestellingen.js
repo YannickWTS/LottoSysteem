@@ -52,6 +52,25 @@ function buildMaandOptions() {
     }
 }
 
+function resetKlantCombo() {
+    selectedKlantId = 0;
+
+    if (klantSearch) {
+        klantSearch.value = "";
+        klantSearch.blur(); // forceer focus-loss
+    }
+
+    if (klantList) {
+        renderKlantList(""); // sluit lijst zoals je normale flow
+    }
+
+    // kleine kick zodat Electron zeker "her paint"
+    requestAnimationFrame(() => {
+        klantSearch?.focus();
+        klantSearch?.blur(); // en terug loslaten, zodat user zelf klikt/typt
+    });
+}
+
 
 // Format ISO LocalDateTime -> "DD/MM/YYYY HH:MM" (nl-BE, zonder seconden)
 function fmtLocalDateTimeToNl(d) {
@@ -235,6 +254,12 @@ document.addEventListener("click", (e) => {
     }
 });
 
+// Extra bulletproof: bij focus verlies / resize / scroll dropdown sluiten
+window.addEventListener("blur", () => klantList?.classList.add("hidden"));
+window.addEventListener("resize", () => klantList?.classList.add("hidden"));
+window.addEventListener("scroll", () => klantList?.classList.add("hidden"), true);
+
+
 /* ============================================================================
  * Validatie
  * ==========================================================================*/
@@ -394,6 +419,8 @@ document.addEventListener("click", async (e) => {
         return;
     }
 
+
+
     // Verwijderen (alleen zichtbaar voor admin)
     if (e.target.matches(".act-del")) {
         const id = e.target.dataset.id;
@@ -430,12 +457,14 @@ form.addEventListener("submit", async (e) => {
     const r = await api("/bestelling", { method: "POST", body: JSON.stringify(payload) });
     if (r.ok) {
         form.reset();
-        // Reset UI
-        selectedKlantId = 0;
-        klantSearch.value = "";
+
+        resetKlantCombo();     // ✅ combo hard resetten (dit is de fix)
         buildMaandOptions();   // opnieuw huidige + 2 volgende maanden
         validate();
+
         await loadBestellingen();
+
+        // TIP: alert pas op het einde (minder kans op focus/overlay issues)
         alert("Bestelling opgeslagen.");
     } else if (r.status === 401) {
         location.href = "/index.html";
