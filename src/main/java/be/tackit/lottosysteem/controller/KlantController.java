@@ -38,9 +38,8 @@ public class KlantController {
     public long create(@RequestBody @Valid Klant klant) {
         return klantService.save(klant);
     }
-    // Mutaties: alleen ADMIN
+
     @PutMapping("{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public void update(@PathVariable long id, @RequestBody @Valid Klant klant) {
         klantService.update(id, klant);
     }

@@ -84,6 +84,18 @@ public class BestellingService {
 
 
     public void deleteBestelling(long id) {
+        var bestelling = bestellingRepository.findById(id);
+
+        if (bestelling.isBetaald()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Betaalde bestelling kan niet verwijderd worden");
+        }
+
         bestellingRepository.delete(id);
+    }
+
+
+    public List<Bestelling> getAllBestellingenVoorKlant(long klantId) {
+        if (klantId <= 0) throw new IllegalArgumentException("Ongeldige klantId!");
+        return bestellingRepository.findAllByKlantId(klantId);
     }
 }

@@ -2,9 +2,11 @@ package be.tackit.lottosysteem.repository;
 
 import be.tackit.lottosysteem.model.Bestelling;
 import be.tackit.lottosysteem.model.Klant;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -18,6 +20,35 @@ public class BestellingRepository {
     public BestellingRepository(JdbcClient jdbcClient) {
         this.jdbcClient = jdbcClient;
     }
+
+    public Bestelling findById(long id) {
+        var sql = """
+            select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
+            from bestelling
+            where id = ?
+            """;
+
+        return jdbcClient.sql(sql)
+                .param(id)
+                .query((rs, rowNum) -> {
+                    Timestamp datumTs = rs.getTimestamp("datum_registratie");
+                    Timestamp laatsteTs = rs.getTimestamp("laatste_update");
+
+                    return new Bestelling(
+                            rs.getLong("id"),
+                            new Klant(rs.getLong("klant_id")),
+                            rs.getString("speltype"),
+                            rs.getString("maand"),
+                            datumTs != null ? datumTs.toLocalDateTime() : null,
+                            rs.getBoolean("betaald"),
+                            rs.getLong("medewerker_id"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
+                    );
+                })
+                .optional()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bestelling niet gevonden"));
+    }
+
 
     public List<Bestelling> findAll() {
         var sql = """
@@ -47,20 +78,27 @@ public class BestellingRepository {
 
     public long save(Bestelling bestelling) {
         String sql = """
-                INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """;
+            INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """;
 
         var keyHolder = new GeneratedKeyHolder();
+
+        // Als direct betaald: laatste_update = datum_registratie (of now)
+        // Ik kies datum_registratie = bestelling.getDatumRegistratie() zodat alles consistent is.
+        Timestamp laatsteUpdateTs = bestelling.isBetaald()
+                ? Timestamp.valueOf(bestelling.getDatumRegistratie())
+                : null;
 
         jdbcClient.sql(sql)
                 .params(
                         bestelling.getKlant().getId(),
                         bestelling.getSpelType(),
                         bestelling.getMaand(),
-                        Timestamp.valueOf(bestelling.getDatumRegistratie()), // ⬅️ LocalDateTime → Timestamp
+                        Timestamp.valueOf(bestelling.getDatumRegistratie()),
                         bestelling.isBetaald(),
-                        bestelling.getMedewerkerId()
+                        bestelling.getMedewerkerId(),
+                        laatsteUpdateTs
                 )
                 .update(keyHolder);
 
@@ -95,7 +133,7 @@ public class BestellingRepository {
         var sql = """
                 select count(*)
                 from bestelling
-                where klant_Id = ?
+                where klant_id = ?
                 """;
         return jdbcClient.sql(sql)
                 .param(klantId)
@@ -107,8 +145,8 @@ public class BestellingRepository {
      * Haalt alle unieke e-mailadressen op van klanten die een betaalde
      * bestelling hebben voor de opgegeven maand en speltype.
      *
-     * @param maand bv. "mei" of "december 2025"
-     *              -> dit moet exact overeenkomen met wat jij in BESTELLING.MAAND bewaart.
+     * @param maand bv. "Mei" of "december 2025"
+     *              → dit moet exact overeenkomen met wat jij in BESTELLING.MAAND bewaart.
      */
     public List<String> findEmailsVoorPotMail(String maand, String spelType) {
         String sql = """
@@ -125,6 +163,34 @@ public class BestellingRepository {
                 .param(1, maand)
                 .param(2, spelType)
                 .query(String.class)
+                .list();
+    }
+
+    public List<Bestelling> findAllByKlantId(long klantId) {
+        var sql = """
+            select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
+            from bestelling
+            where klant_id = ?
+            order by datum_registratie desc, id desc
+            """;
+
+        return jdbcClient.sql(sql)
+                .param(klantId)
+                .query((rs, rowNum) -> {
+                    Timestamp datumTs = rs.getTimestamp("datum_registratie");
+                    Timestamp laatsteTs = rs.getTimestamp("laatste_update");
+
+                    return new Bestelling(
+                            rs.getLong("id"),
+                            new Klant(rs.getLong("klant_id")),
+                            rs.getString("speltype"),
+                            rs.getString("maand"),
+                            datumTs != null ? datumTs.toLocalDateTime() : null,
+                            rs.getBoolean("betaald"),
+                            rs.getLong("medewerker_id"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
+                    );
+                })
                 .list();
     }
 }

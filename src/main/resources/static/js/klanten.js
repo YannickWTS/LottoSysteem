@@ -66,6 +66,8 @@ const modalTitle   = qs("#modalTitle");
 const modalBody    = qs("#modalBody");
 const modalCancel  = qs("#modalCancel");
 const modalOk      = qs("#modalOk");
+const modalBox = qs("#modalOverlay .modal");
+
 
 let modalOkHandler = null;
 
@@ -78,7 +80,9 @@ function closeModal() {
     modalBody.innerHTML = "";
     modalTitle.textContent = "";
     modalOkHandler = null;
+    modalBox?.classList.remove("modal-wide"); // ⬅️ reset
 }
+
 
 function openModal({ title, bodyHtml, okText = "Opslaan", showCancel = true, onOk }) {
     modalTitle.textContent = title;
@@ -171,18 +175,25 @@ function render() {
 }
 
 function rowHtml(k) {
-    const actions = isAdmin
-        ? `
+    const actions = `
       <div class="action-list">
         <span class="action-link" data-act="edit" data-id="${k.id}">Bewerk</span>
-        <span class="action-link danger" data-act="delete" data-id="${k.id}">Verwijder</span>
+        ${isAdmin ? `<span class="action-link danger" data-act="delete" data-id="${k.id}">Verwijder</span>` : ``}
       </div>
-    `
-        : `<em style="color:var(--muted)">—</em>`;
+    `;
 
     return `
     <tr>
-      <td>${escapeHtml(k.naam)}</td>
+      <td>
+  <button type="button"
+          class="klant-naam-link"
+          data-act="history"
+          data-id="${k.id}"
+          data-naam="${escapeAttr(k.naam)}">
+    ${escapeHtml(k.naam)}
+  </button>
+</td>
+
       <td>${escapeHtml(k.email)}</td>
       <td class="actions-cell">${actions}</td>
     </tr>
@@ -195,9 +206,11 @@ function onRowAction(e) {
     const id  = Number(e.currentTarget.dataset.id);
     if (!act || !id) return;
 
-    if (act === "edit")   openEditModal(id);
-    if (act === "delete") onDelete(id);
+    if (act === "edit")    openEditModal(id);
+    if (act === "delete")  onDelete(id);
+    if (act === "history") openHistoryModal(id, e.currentTarget.dataset.naam);
 }
+
 
 /* ───────────── Modal: klant bewerken ─────────────────────── */
 function openEditModal(id) {
@@ -253,9 +266,7 @@ function openEditModal(id) {
 
 /* ───────────── Modal: nieuwe klant ───────────────────────── */
 function openCreateModal() {
-    if (!isAdmin) return;
-
-    openModal({
+        openModal({
         title: "Nieuwe klant",
         okText: "Toevoegen",
         bodyHtml: `
@@ -312,3 +323,79 @@ async function onDelete(id) {
         alert(err.message || "Verwijderen mislukt.");
     }
 }
+
+async function openHistoryModal(klantId, klantNaam) {
+    const safeNaam = klantNaam || `#${klantId}`;
+
+    modalBox?.classList.add("modal-wide"); // maak breed
+
+    openModal({
+        title: `Geschiedenis: ${safeNaam}`,
+        okText: "Sluiten",
+        showCancel: false,
+        bodyHtml: `
+          <div class="history-wrap">
+            <div style="color:var(--muted); margin-bottom:10px;">
+              Alle bestellingen (nieuwste eerst)
+            </div>
+
+            <div id="historyList" class="history-list">
+              <div style="color:var(--muted)">Laden…</div>
+            </div>
+
+            <p id="historyMsg" class="form-msg" style="margin-top:8px;"></p>
+          </div>
+        `,
+        onOk: async () => closeModal()
+    });
+
+    const listEl = qs("#historyList");
+    const msgEl  = qs("#historyMsg");
+
+    try {
+        const bestellingen = await apiFetch(`/bestelling/klant/${klantId}`);
+        listEl.innerHTML = renderHistory(bestellingen);
+
+        if (!bestellingen || bestellingen.length === 0) {
+            setMsg(msgEl, "ok", "Geen bestellingen voor deze klant.");
+        }
+    } catch (err) {
+        listEl.innerHTML = `<div class="form-msg error">Kon geschiedenis niet laden.</div>`;
+        setMsg(msgEl, "error", err.message || "Kon geschiedenis niet laden.");
+    }
+}
+
+function renderHistory(list) {
+    if (!list || list.length === 0) {
+        return `<div style="color:var(--muted)">Geen bestellingen.</div>`;
+    }
+
+    return list.map(b => {
+        // Datum: betaald => laatsteUpdate (= betaald op), anders datumRegistratie
+        const datumRaw = (b.betaald && b.laatsteUpdate) ? b.laatsteUpdate : b.datumRegistratie;
+        const datumTxt = datumRaw ? new Date(datumRaw).toLocaleString("nl-BE") : "";
+
+        const datumLabel = b.betaald ? "Betaald op" : "Besteld op";
+        const statusTxt  = b.betaald ? "BETAALD" : "OPEN";
+
+        const spelType = escapeHtml(b.spelType ?? "");
+        const maand   = escapeHtml(b.maand ?? "");
+        const medewerker = escapeHtml(b.medewerkerNaam ?? `#${b.medewerkerId ?? ""}`);
+
+
+        return `
+          <div class="history-item">
+            <div class="history-row">
+              <div class="history-main">
+                <div class="history-title">${spelType}</div>
+                <div class="history-sub">
+                  ${datumLabel}: ${escapeHtml(datumTxt)} · Maand: ${maand} · Medewerker: ${medewerker}
+                </div>
+              </div>
+              <div class="history-status ${b.betaald ? "ok" : "error"}">${statusTxt}</div>
+            </div>
+          </div>
+        `;
+    }).join("");
+}
+

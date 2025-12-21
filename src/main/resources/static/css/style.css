@@ -668,8 +668,7 @@ body.page-klanten label {
     color: var(--muted);
 }
 
-body.page-klanten input[type=text],
-body.page-klanten input[type=password] {
+body.page-klanten #inpZoek{
     max-width: 260px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
@@ -686,7 +685,7 @@ body.page-klanten .card button {
     box-shadow: 0 2px 8px rgba(37, 99, 235, .15);
 }
 
-body.page-klanten.card button.danger {
+body.page-klanten .card button.danger {
     background: var(--danger-bg);
     color: var(--danger);
     box-shadow: 0 2px 8px rgba(185, 28, 28, .12);
@@ -762,7 +761,7 @@ body.page-klanten .t td.actions-cell .action-list {
     flex-wrap: nowrap;
 }
 
-body.page-klanten #adminBlok .adminHead {
+body.page-klanten #klantenBlok .adminHead {
     position: relative;
     display: flex;
     justify-content: space-between;
@@ -770,12 +769,34 @@ body.page-klanten #adminBlok .adminHead {
     margin-bottom: 10px;
 }
 
-body.page-klanten #adminBlok .create-slot {
+body.page-klanten #klantenBlok .create-slot {
     position: absolute;
     top: 0;
     right: 0;
     pointer-events: none;
 }
+
+.klant-naam-link{
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    font: inherit;
+    color: var(--primary-strong);
+    cursor: pointer;
+    text-align: left;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+.klant-naam-link:hover{
+    filter: brightness(1.05);
+}
+.klant-naam-link:focus{
+    outline: 2px solid rgba(37, 99, 235, 0.25);
+    outline-offset: 2px;
+    border-radius: 6px;
+}
+
 
 /* Extra: specifieke quotes en lege sectie overal beschikbaar */
 #quote {
@@ -836,6 +857,73 @@ body.page-klanten #adminBlok .create-slot {
     box-shadow: 0 12px 40px rgba(0,0,0,0.15);
     animation: popIn 0.2s ease;
 }
+
+.modal.modal-wide{
+    max-width: 860px;
+}
+
+.modal .history-list{
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.modal input[type=text],
+.modal input[type=password],
+.modal input[type=email]{
+    max-width: 100%;
+}
+
+/* ===== Klantgeschiedenis ===== */
+
+.history-item {
+    margin-bottom: 14px;                 /* ruimte tussen bestellingen */
+    padding: 14px 16px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+.history-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+}
+
+.history-title {
+    font-weight: 700;
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.history-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.history-status {
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    white-space: nowrap;
+}
+
+.history-status.ok {
+    background: #e6f7ee;
+    color: #137a44;
+}
+
+.history-status.error {
+    background: #ffe9e9;
+    color: #b91c1c;
+}
+
 
 @keyframes popIn {
     from { transform: scale(0.96); opacity: 0; }

@@ -67,4 +67,11 @@ public class BestellingController {
     public void deleteBestelling(@PathVariable long id) {
         bestellingService.deleteBestelling(id);
     }
+
+    @GetMapping("/klant/{klantId}")
+    public List<BestellingView> getBestellingenVoorKlant(@PathVariable long klantId) {
+        return bestellingService.getAllBestellingenVoorKlant(klantId).stream()
+                .map(this::toView)
+                .toList();
+    }
 }
