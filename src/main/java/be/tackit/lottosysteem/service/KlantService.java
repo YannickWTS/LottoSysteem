@@ -46,6 +46,13 @@ public class KlantService {
         return klantRepository.findByNaamBevat((naamDeel == null) ? "" : naamDeel.trim());
     }
 
+    /**
+     * Voor autocomplete / klant selecteren: enkel actieve klanten.
+     */
+    public List<Klant> findActiveByNaamBevat(String naamDeel) {
+        return klantRepository.findActiveByNaamBevat((naamDeel == null) ? "" : naamDeel.trim());
+    }
+
     /* ---------- writes ---------- */
 
     @Transactional
@@ -57,13 +64,12 @@ public class KlantService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Naam en e-mail zijn verplicht");
         }
 
-        // nette 409 i.p.v. DB-fout
         if (klantRepository.existsByEmailIgnoreCase(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail bestaat al");
         }
 
         klant.setNaam(naam);
-        klant.setEmail(email); // lowercase
+        klant.setEmail(email);
         return klantRepository.save(klant);
     }
 
@@ -76,21 +82,33 @@ public class KlantService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Naam en e-mail zijn verplicht");
         }
 
-        // conflict alleen als de e-mail bij een ANDERE klant hoort
         if (klantRepository.existsByEmailIgnoreCaseExcludingId(email, id)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail bestaat al");
         }
 
-        var updated = klantRepository.update(id, naam, email); // email lowercase
+        var updated = klantRepository.update(id, naam, email);
         if (updated == 0) throw new KlantNietGevondenException(id);
     }
 
+    /**
+     * "Verwijderen" = anonimiseren.
+     * Enkel toegestaan als er GEEN openstaande (onbetaalde) bestellingen zijn.
+     */
     @Transactional
-    public void delete(long id) {
-        if (bestellingRepository.countByKlantId(id) > 0) {
-            throw new IllegalStateException("Klant heeft nog bestellingen en kan niet verwijderd worden.");
+    public void anonymize(long id) {
+        // Klant moet bestaan (zodat we 404 kunnen geven i.p.v. "ok maar 0 rows")
+        findById(id);
+
+        // BELANGRIJK: check enkel openstaande, niet "heeft ooit besteld"
+        // → hiervoor moet BestellingRepository een count voor onbetaald hebben.
+        if (bestellingRepository.countOpenstaandByKlantId(id) > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Klant heeft nog openstaande (onbetaalde) bestellingen en kan niet verwijderd worden."
+            );
         }
-        var rows = klantRepository.delete(id);
+
+        var rows = klantRepository.anonymize(id);
         if (rows == 0) throw new KlantNietGevondenException(id);
     }
 }

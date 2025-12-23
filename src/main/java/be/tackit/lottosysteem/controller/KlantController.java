@@ -17,7 +17,6 @@ public class KlantController {
         this.klantService = klantService;
     }
 
-    // Iedereen die ingelogd is
     @GetMapping
     public List<Klant> findAll() {
         return klantService.findAll();
@@ -28,10 +27,14 @@ public class KlantController {
         return klantService.findById(id);
     }
 
-    // Zoeken op 'bevat' i.p.v. 'begint met'
     @GetMapping("zoeken/{term}")
     public List<Klant> findByNaamBevat(@PathVariable String term) {
         return klantService.findByNaamBevat(term);
+    }
+
+    @GetMapping("actief/zoeken/{term}")
+    public List<Klant> findActiveByNaamBevat(@PathVariable String term) {
+        return klantService.findActiveByNaamBevat(term);
     }
 
     @PostMapping
@@ -47,6 +50,6 @@ public class KlantController {
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable long id) {
-        klantService.delete(id);
+        klantService.anonymize(id);
     }
 }

@@ -129,17 +129,19 @@ public class BestellingRepository {
                 .update();
     }
 
-    public long countByKlantId(long klantId) {
+    public long countOpenstaandByKlantId(long klantId) {
         var sql = """
-                select count(*)
-                from bestelling
-                where klant_id = ?
-                """;
+            select count(*)
+            from bestelling
+            where klant_id = ?
+              and betaald = false
+            """;
         return jdbcClient.sql(sql)
                 .param(klantId)
                 .query(Long.class)
                 .single();
     }
+
 
     /**
      * Haalt alle unieke e-mailadressen op van klanten die een betaalde

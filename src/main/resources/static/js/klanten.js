@@ -2,7 +2,6 @@
 
 /* ───────────────────────── Helpers ───────────────────────── */
 const qs  = (s) => document.querySelector(s);
-const qsa = (s) => [...document.querySelectorAll(s)];
 
 class ApiError extends Error {
     constructor(status, message) {
@@ -54,6 +53,17 @@ function setMsg(el, type, text) {
     if (type === "ok")    el.classList.add("ok");
 }
 
+function displayNaam(k) {
+    if (k?.verwijderd) return `Verwijderde klant #${k.id}`;
+    return k?.naam ?? "";
+}
+
+function displayEmail(k) {
+    if (k?.verwijderd) return "—";
+    return k?.email ?? "";
+}
+
+
 /* ────────────────────── DOM refs / state ─────────────────── */
 const tbody     = qs("#tbodyKlanten");
 const btnNieuwe = qs("#btnNieuweKlant");
@@ -93,7 +103,7 @@ function openModal({ title, bodyHtml, okText = "Opslaan", showCancel = true, onO
     modalOkHandler = onOk || null;
 }
 
-// klik op achtergrond => sluiten
+// klik op achtergrond → sluiten
 modalOverlay?.addEventListener("click", (e) => {
     if (e.target === modalOverlay) {
         closeModal();
@@ -158,8 +168,9 @@ async function load() {
 function render() {
     const q = (zoek?.value || "").toLowerCase();
     const list = (klanten || []).filter(k =>
-        (k.naam || "").toLowerCase().includes(q)
+        displayNaam(k).toLowerCase().includes(q)
     );
+
 
     if (!list.length) {
         tbody.innerHTML = `<tr><td colspan="3">Geen klanten gevonden.</td></tr>`;
@@ -175,30 +186,41 @@ function render() {
 }
 
 function rowHtml(k) {
+    const naamTxt  = displayNaam(k);
+    const emailTxt = displayEmail(k);
+    const isDeleted = !!k.verwijderd;
+
     const actions = `
       <div class="action-list">
-        <span class="action-link" data-act="edit" data-id="${k.id}">Bewerk</span>
-        ${isAdmin ? `<span class="action-link danger" data-act="delete" data-id="${k.id}">Verwijder</span>` : ``}
+        ${!isDeleted ? `<span class="action-link" data-act="edit" data-id="${k.id}">Bewerk</span>` : ``}
+        ${isAdmin
+        ? (isDeleted
+                ? `` // verwijderde klanten niet opnieuw verwijderen
+                : `<span class="action-link danger" data-act="delete" data-id="${k.id}">Verwijder</span>`
+        )
+        : ``
+    }
       </div>
     `;
 
     return `
-    <tr>
+    <tr class="${isDeleted ? "row-deleted" : ""}">
       <td>
-  <button type="button"
-          class="klant-naam-link"
-          data-act="history"
-          data-id="${k.id}"
-          data-naam="${escapeAttr(k.naam)}">
-    ${escapeHtml(k.naam)}
-  </button>
-</td>
-
-      <td>${escapeHtml(k.email)}</td>
+        <button type="button"
+                class="klant-naam-link"
+                data-act="history"
+                data-id="${k.id}"
+                data-naam="${escapeAttr(naamTxt)}">
+          ${escapeHtml(naamTxt)}
+        </button>
+        ${isDeleted ? `<span class="badge-deleted" title="Persoonsgegevens verwijderd">VERWIJDERD</span>` : ``}
+      </td>
+      <td>${escapeHtml(emailTxt)}</td>
       <td class="actions-cell">${actions}</td>
     </tr>
   `;
 }
+
 
 /* ────────────────────── Rij-acties ───────────────────────── */
 function onRowAction(e) {
@@ -216,6 +238,12 @@ function onRowAction(e) {
 function openEditModal(id) {
     const k = klanten.find(x => x.id === id);
     if (!k) return;
+
+    if (k.verwijderd) {
+        alert(`Deze klant is verwijderd (geanonimiseerd) en kan niet meer bewerkt worden.`);
+        return;
+    }
+
 
     openModal({
         title: "Klant bewerken",
@@ -296,7 +324,7 @@ function openCreateModal() {
                     body: JSON.stringify({ naam, email })
                 });
 
-                klanten.push({ id, naam, email });
+                klanten.push({ id, naam, email, verwijderd: false, verwijderdOp: null });
                 closeModal();
                 render();
             } catch (err) {
@@ -313,16 +341,35 @@ function openCreateModal() {
 /* ───────────── Verwijderen ───────────────────────────────── */
 async function onDelete(id) {
     const k = klanten.find(x => x.id === id);
-    if (!window.confirm(`Klant “${k?.naam ?? id}” verwijderen?`)) return;
+    if (!k) return;
+
+    const ok = window.confirm(
+        `Klant verwijderen (anonimiseren)?\n\n` +
+        `${displayNaam(k)}\n\n` +
+        `De historiek blijft bestaan, maar naam/e-mail worden verwijderd.\n` +
+        `Dit kan enkel als er geen openstaande bestellingen zijn.`
+    );
+    if (!ok) return;
 
     try {
         await apiFetch(`/klanten/${id}`, { method: "DELETE" });
-        klanten = klanten.filter(x => x.id !== id);
+
+        // lokaal updaten i.p.v. verwijderen uit de lijst
+        k.verwijderd = true;
+        k.naam = "Verwijderde klant";
+        k.email = null;
+
         render();
     } catch (err) {
+        // service gooit 409 bij openstaande bestellingen (zoals we gepland hebben)
+        if (err.status === 409) {
+            alert(err.message || "Klant heeft nog openstaande bestellingen.");
+            return;
+        }
         alert(err.message || "Verwijderen mislukt.");
     }
 }
+
 
 async function openHistoryModal(klantId, klantNaam) {
     const safeNaam = klantNaam || `#${klantId}`;

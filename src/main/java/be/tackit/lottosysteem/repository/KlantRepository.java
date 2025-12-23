@@ -19,9 +19,9 @@ public class KlantRepository {
 
     public List<Klant> findAll() {
         var sql = """
-                select id, naam, email
+                select id, naam, email, verwijderd, verwijderd_op
                 from klant
-                order by lower(naam)
+                order by verwijderd, lower(naam)
                 """;
         return jdbcClient.sql(sql)
                 .query(Klant.class)
@@ -30,7 +30,7 @@ public class KlantRepository {
 
     public Optional<Klant> findById(long id) {
         var sql = """
-                select id, naam, email
+                select id, naam, email, verwijderd, verwijderd_op
                 from klant
                 where id = ?
                 """;
@@ -40,11 +40,31 @@ public class KlantRepository {
                 .optional();
     }
 
+    /**
+     * Voor algemene zoek/scherm (mag ook verwijderde klanten tonen)
+     */
     public List<Klant> findByNaamBevat(String deel) {
         var sql = """
-                select id, naam, email
+                select id, naam, email, verwijderd, verwijderd_op
                 from klant
                 where lower(naam) like ?
+                order by verwijderd, lower(naam)
+                """;
+        return jdbcClient.sql(sql)
+                .param("%" + deel.toLowerCase() + "%")
+                .query(Klant.class)
+                .list();
+    }
+
+    /**
+     * Voor autocomplete / klant selecteren in bestellingen: enkel actieve klanten
+     */
+    public List<Klant> findActiveByNaamBevat(String deel) {
+        var sql = """
+                select id, naam, email, verwijderd, verwijderd_op
+                from klant
+                where verwijderd = false
+                  and lower(naam) like ?
                 order by lower(naam)
                 """;
         return jdbcClient.sql(sql)
@@ -55,8 +75,8 @@ public class KlantRepository {
 
     public long save(Klant klant) {
         var sql = """
-                insert into klant(naam, email)
-                values (?, ?)
+                insert into klant(naam, email, verwijderd, verwijderd_op)
+                values (?, ?, false, null)
                 """;
         var keyholder = new GeneratedKeyHolder();
         jdbcClient.sql(sql)
@@ -77,10 +97,17 @@ public class KlantRepository {
                 .update();
     }
 
-    public int delete(long id) {
+    /**
+     * "Verwijderen" = anonimiseren + flagged als verwijderd.
+     * We houden id zodat bestellingen/historiek blijven bestaan.
+     */
+    public int anonymize(long id) {
         var sql = """
-                delete
-                from klant
+                update klant
+                set naam = 'Verwijderde klant',
+                    email = null,
+                    verwijderd = true,
+                    verwijderd_op = current_timestamp
                 where id = ?
                 """;
         return jdbcClient.sql(sql)
@@ -101,7 +128,12 @@ public class KlantRepository {
     }
 
     public boolean existsByEmailIgnoreCase(String email) {
-        var sql = "select count(*) from klant where lower(email) = lower(?)";
+        var sql = """
+                select count(*)
+                from klant
+                where verwijderd = false
+                  and lower(email) = lower(?)
+                """;
         return jdbcClient.sql(sql)
                 .param(email)
                 .query(Long.class)
@@ -110,15 +142,15 @@ public class KlantRepository {
 
     public boolean existsByEmailIgnoreCaseExcludingId(String email, long excludeId) {
         var sql = """
-        select count(*)
-        from klant
-        where lower(email) = lower(?)
-          and id <> ?
-    """;
+                select count(*)
+                from klant
+                where verwijderd = false
+                  and lower(email) = lower(?)
+                  and id <> ?
+                """;
         return jdbcClient.sql(sql)
                 .params(email, excludeId)
                 .query(Long.class)
                 .single() > 0;
     }
-
 }
