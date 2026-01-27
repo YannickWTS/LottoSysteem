@@ -3,8 +3,8 @@
 Een lokaal kassabeheersysteem voor het registreren van bestellingen voor Lotto- en EuroMillions-spelen.  
 Dit project is speciaal gebouwd voor een zelfstandige verkoper en draait volledig offline.
 
-⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 80-90% voltooid).  
-Na afronding van mijn opleiding zal dit verder worden afgewerkt en uitgebreid.
+⚠️ **Let op:** Dit project is momenteel nog in ontwikkeling (± 90-95% voltooid).  
+
 
 ---
 
@@ -27,6 +27,8 @@ Deze webapplicatie helpt hem om:
 - ✅ Automatische berekening van het te betalen bedrag
 - ✅ Printen van bonnetje (via Star TSP-100 thermische printer)
 - ✅ Gegevens lokaal opslaan (zonder internetverbinding)
+- ✅ Bestelgeschiedenis per klant
+- ✅ Filteren op maand / speltype
 - 🔜 Zoekfunctie en maandelijkse rapportering
 
 ---
@@ -43,16 +45,14 @@ Deze webapplicatie helpt hem om:
 ## 📦 Status
 
 > ✅ Eerste functionaliteiten gebouwd en getest  
-> 🧪 Project wordt verder uitgewerkt na afronding van mijn opleiding  
-> 🛑 Geen echte klantdata aanwezig in dit stadium
+> 🧪 Project wordt verder uitgewerkt in februarie 2026 
+> 🛑 Geen echte klantdata aanwezig.
 
 ---
 
 ## 📌 Toekomstige uitbreidingen
 
-- Bestelgeschiedenis per klant
 - Automatische herinneringen voor openstaande betalingen
-- Filteren op maand / speltype
 - Data-export (optioneel)
 
 ---
