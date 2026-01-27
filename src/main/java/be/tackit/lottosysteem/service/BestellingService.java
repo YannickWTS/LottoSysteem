@@ -28,10 +28,9 @@ public class BestellingService {
             "Lotto",
             "Lotto Extra",
             "EuroMillions",
-            "EuroMillions Extra"
-    );
+            "EuroMillions Extra");
 
-    public List<Bestelling> getAllBestelling(){
+    public List<Bestelling> getAllBestelling() {
         return bestellingRepository.findAll();
     }
 
@@ -59,8 +58,8 @@ public class BestellingService {
                 dto.maand(),
                 LocalDateTime.now(),
                 betaald,
-                gebruiker.getId()
-        );
+                gebruiker.getId(),
+                gebruiker.getGebruikersnaam());
 
         return bestellingRepository.save(bestelling);
     }
@@ -68,7 +67,7 @@ public class BestellingService {
     public void setBetaald(long id, boolean betaald) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // Kies één van beide (wat jij al hebt):
+
         // A) via Optional<Long>:
         var bewerkerId = gebruikerRepository.findIdByGebruikersnaam(auth.getName())
                 .orElseThrow(() -> new IllegalStateException("Ingelogde gebruiker niet gevonden"));
@@ -77,11 +76,10 @@ public class BestellingService {
 
         int updated = bestellingRepository.updateBetaald(id, betaald, bewerkerId);
         if (updated == 0) {
-            // niets gevonden → 404 is logischer dan 409
+
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bestelling niet gevonden");
         }
     }
-
 
     public void deleteBestelling(long id) {
         var bestelling = bestellingRepository.findById(id);
@@ -93,9 +91,9 @@ public class BestellingService {
         bestellingRepository.delete(id);
     }
 
-
     public List<Bestelling> getAllBestellingenVoorKlant(long klantId) {
-        if (klantId <= 0) throw new IllegalArgumentException("Ongeldige klantId!");
+        if (klantId <= 0)
+            throw new IllegalArgumentException("Ongeldige klantId!");
         return bestellingRepository.findAllByKlantId(klantId);
     }
 }

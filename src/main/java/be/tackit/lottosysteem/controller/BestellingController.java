@@ -4,8 +4,6 @@ import be.tackit.lottosysteem.dto.BestellingView;
 import be.tackit.lottosysteem.dto.NieuweBestelling;
 import be.tackit.lottosysteem.dto.UpdateBetaald;
 import be.tackit.lottosysteem.model.Bestelling;
-import be.tackit.lottosysteem.repository.GebruikerRepository;
-import be.tackit.lottosysteem.repository.KlantRepository;
 import be.tackit.lottosysteem.service.BestellingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +14,9 @@ import java.util.List;
 @RequestMapping("/bestelling")
 public class BestellingController {
     private final BestellingService bestellingService;
-    private final GebruikerRepository gebruikerRepository;
-    private final KlantRepository klantRepository;
 
-    public BestellingController(BestellingService bestellingService, GebruikerRepository gebruikerRepository, KlantRepository klantRepository) {
+    public BestellingController(BestellingService bestellingService) {
         this.bestellingService = bestellingService;
-        this.gebruikerRepository = gebruikerRepository;
-        this.klantRepository = klantRepository;
     }
 
     @GetMapping
@@ -33,10 +27,14 @@ public class BestellingController {
     }
 
     private BestellingView toView(Bestelling b) {
-        var klantNaam = klantRepository.findNaamById(b.getKlant().getId())
-                .orElse("Klant #" + b.getKlant().getId());
-        var medewerkerNaam = gebruikerRepository.findNaamById(b.getMedewerkerId())
-                .orElse("#" + b.getMedewerkerId());
+        // Data is nu al aanwezig via JOINs
+        var klantNaam = b.getKlant().getNaam();
+        if (klantNaam == null)
+            klantNaam = "Klant #" + b.getKlant().getId();
+
+        var medewerkerNaam = b.getMedewerkerNaam();
+        if (medewerkerNaam == null)
+            medewerkerNaam = "#" + b.getMedewerkerId();
 
         return new BestellingView(
                 b.getId(),
@@ -48,8 +46,7 @@ public class BestellingController {
                 b.isBetaald(),
                 b.getMedewerkerId(),
                 medewerkerNaam,
-                b.getLaatsteUpdate()
-        );
+                b.getLaatsteUpdate());
     }
 
     @PostMapping

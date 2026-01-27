@@ -23,10 +23,16 @@ public class BestellingRepository {
 
     public Bestelling findById(long id) {
         var sql = """
-            select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
-            from bestelling
-            where id = ?
-            """;
+                SELECT
+                    b.id, b.klant_id, k.naam as klant_naam, k.email as klant_email,
+                    b.speltype, b.maand, b.datum_registratie, b.betaald,
+                    b.medewerker_id, g.gebruikersnaam as medewerker_naam,
+                    b.laatste_update
+                FROM bestelling b
+                JOIN klant k ON b.klant_id = k.id
+                JOIN gebruiker g ON b.medewerker_id = g.id
+                WHERE b.id = ?
+                """;
 
         return jdbcClient.sql(sql)
                 .param(id)
@@ -34,27 +40,37 @@ public class BestellingRepository {
                     Timestamp datumTs = rs.getTimestamp("datum_registratie");
                     Timestamp laatsteTs = rs.getTimestamp("laatste_update");
 
+                    Klant klant = new Klant(
+                            rs.getLong("klant_id"),
+                            rs.getString("klant_naam"),
+                            rs.getString("klant_email"));
+
                     return new Bestelling(
                             rs.getLong("id"),
-                            new Klant(rs.getLong("klant_id")),
+                            klant,
                             rs.getString("speltype"),
                             rs.getString("maand"),
                             datumTs != null ? datumTs.toLocalDateTime() : null,
                             rs.getBoolean("betaald"),
                             rs.getLong("medewerker_id"),
-                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
-                    );
+                            rs.getString("medewerker_naam"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null);
                 })
                 .optional()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Bestelling niet gevonden"));
     }
 
-
     public List<Bestelling> findAll() {
         var sql = """
-                select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
-                from bestelling
-                order by id desc
+                    SELECT
+                        b.id, b.klant_id, k.naam as klant_naam, k.email as klant_email,
+                        b.speltype, b.maand, b.datum_registratie, b.betaald,
+                        b.medewerker_id, g.gebruikersnaam as medewerker_naam,
+                        b.laatste_update
+                    FROM bestelling b
+                    JOIN klant k ON b.klant_id = k.id
+                    JOIN gebruiker g ON b.medewerker_id = g.id
+                    ORDER BY b.datum_registratie DESC
                 """;
 
         return jdbcClient.sql(sql)
@@ -62,30 +78,36 @@ public class BestellingRepository {
                     Timestamp datumTs = rs.getTimestamp("datum_registratie");
                     Timestamp laatsteTs = rs.getTimestamp("laatste_update");
 
+                    Klant klant = new Klant(
+                            rs.getLong("klant_id"),
+                            rs.getString("klant_naam"),
+                            rs.getString("klant_email"));
+
                     return new Bestelling(
                             rs.getLong("id"),
-                            new Klant(rs.getLong("klant_id")),
+                            klant,
                             rs.getString("speltype"),
                             rs.getString("maand"),
                             datumTs.toLocalDateTime(), // datum + tijd van bestelling
                             rs.getBoolean("betaald"),
                             rs.getLong("medewerker_id"),
-                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
-                    );
+                            rs.getString("medewerker_naam"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null);
                 })
                 .list();
     }
 
     public long save(Bestelling bestelling) {
         String sql = """
-            INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """;
+                INSERT INTO bestelling (klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """;
 
         var keyHolder = new GeneratedKeyHolder();
 
         // Als direct betaald: laatste_update = datum_registratie (of now)
-        // Ik kies datum_registratie = bestelling.getDatumRegistratie() zodat alles consistent is.
+        // Ik kies datum_registratie = bestelling.getDatumRegistratie() zodat alles
+        // consistent is.
         Timestamp laatsteUpdateTs = bestelling.isBetaald()
                 ? Timestamp.valueOf(bestelling.getDatumRegistratie())
                 : null;
@@ -98,8 +120,7 @@ public class BestellingRepository {
                         Timestamp.valueOf(bestelling.getDatumRegistratie()),
                         bestelling.isBetaald(),
                         bestelling.getMedewerkerId(),
-                        laatsteUpdateTs
-                )
+                        laatsteUpdateTs)
                 .update(keyHolder);
 
         return Objects.requireNonNull(keyHolder.getKey()).longValue();
@@ -131,35 +152,35 @@ public class BestellingRepository {
 
     public long countOpenstaandByKlantId(long klantId) {
         var sql = """
-            select count(*)
-            from bestelling
-            where klant_id = ?
-              and betaald = false
-            """;
+                select count(*)
+                from bestelling
+                where klant_id = ?
+                  and betaald = false
+                """;
         return jdbcClient.sql(sql)
                 .param(klantId)
                 .query(Long.class)
                 .single();
     }
 
-
     /**
      * Haalt alle unieke e-mailadressen op van klanten die een betaalde
      * bestelling hebben voor de opgegeven maand en speltype.
      *
      * @param maand bv. "Mei" of "december 2025"
-     *              → dit moet exact overeenkomen met wat jij in BESTELLING.MAAND bewaart.
+     *              → dit moet exact overeenkomen met wat jij in BESTELLING.MAAND
+     *              bewaart.
      */
     public List<String> findEmailsVoorPotMail(String maand, String spelType) {
         String sql = """
-        select distinct k.email
-        from bestelling b
-        join klant k on k.id = b.klant_id
-        where b.betaald = true
-          and b.maand = ?
-          and lower(b.speltype) = lower(?)
-          and k.email is not null
-        """;
+                select distinct k.email
+                from bestelling b
+                join klant k on k.id = b.klant_id
+                where b.betaald = true
+                  and b.maand = ?
+                  and lower(b.speltype) = lower(?)
+                  and k.email is not null
+                """;
 
         return jdbcClient.sql(sql)
                 .param(1, maand)
@@ -170,11 +191,17 @@ public class BestellingRepository {
 
     public List<Bestelling> findAllByKlantId(long klantId) {
         var sql = """
-            select id, klant_id, speltype, maand, datum_registratie, betaald, medewerker_id, laatste_update
-            from bestelling
-            where klant_id = ?
-            order by datum_registratie desc, id desc
-            """;
+                SELECT
+                    b.id, b.klant_id, k.naam as klant_naam, k.email as klant_email,
+                    b.speltype, b.maand, b.datum_registratie, b.betaald,
+                    b.medewerker_id, g.gebruikersnaam as medewerker_naam,
+                    b.laatste_update
+                FROM bestelling b
+                JOIN klant k ON b.klant_id = k.id
+                JOIN gebruiker g ON b.medewerker_id = g.id
+                WHERE b.klant_id = ?
+                ORDER BY b.datum_registratie DESC, b.id DESC
+                """;
 
         return jdbcClient.sql(sql)
                 .param(klantId)
@@ -182,18 +209,22 @@ public class BestellingRepository {
                     Timestamp datumTs = rs.getTimestamp("datum_registratie");
                     Timestamp laatsteTs = rs.getTimestamp("laatste_update");
 
+                    Klant klant = new Klant(
+                            rs.getLong("klant_id"),
+                            rs.getString("klant_naam"),
+                            rs.getString("klant_email"));
+
                     return new Bestelling(
                             rs.getLong("id"),
-                            new Klant(rs.getLong("klant_id")),
+                            klant,
                             rs.getString("speltype"),
                             rs.getString("maand"),
                             datumTs != null ? datumTs.toLocalDateTime() : null,
                             rs.getBoolean("betaald"),
                             rs.getLong("medewerker_id"),
-                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null
-                    );
+                            rs.getString("medewerker_naam"),
+                            laatsteTs != null ? laatsteTs.toLocalDateTime() : null);
                 })
                 .list();
     }
 }
-

@@ -10,9 +10,11 @@ public class Bestelling {
     private final LocalDateTime datumRegistratie;
     private final boolean betaald;
     private final long medewerkerId;
+    private final String medewerkerNaam;
     private final LocalDateTime laatsteUpdate;
 
-    public Bestelling(long id, Klant klant, String spelType, String maand, LocalDateTime datumRegistratie, boolean betaald, long medewerkerId, LocalDateTime laatsteUpdate) {
+    public Bestelling(long id, Klant klant, String spelType, String maand, LocalDateTime datumRegistratie,
+            boolean betaald, long medewerkerId, String medewerkerNaam, LocalDateTime laatsteUpdate) {
         this.id = id;
         this.klant = klant;
         this.spelType = spelType;
@@ -20,11 +22,13 @@ public class Bestelling {
         this.datumRegistratie = datumRegistratie;
         this.betaald = betaald;
         this.medewerkerId = medewerkerId;
+        this.medewerkerNaam = medewerkerNaam;
         this.laatsteUpdate = laatsteUpdate;
     }
 
-    public Bestelling(Klant klant, String spelType, String maand, LocalDateTime datumRegistratie, boolean betaald, long medewerkerId) {
-        this(0L, klant, spelType, maand, datumRegistratie, betaald, medewerkerId, null);
+    public Bestelling(Klant klant, String spelType, String maand, LocalDateTime datumRegistratie, boolean betaald,
+            long medewerkerId, String medewerkerNaam) {
+        this(0L, klant, spelType, maand, datumRegistratie, betaald, medewerkerId, medewerkerNaam, null);
     }
 
     public long getId() {
@@ -53,6 +57,10 @@ public class Bestelling {
 
     public long getMedewerkerId() {
         return medewerkerId;
+    }
+
+    public String getMedewerkerNaam() {
+        return medewerkerNaam;
     }
 
     public LocalDateTime getLaatsteUpdate() {
