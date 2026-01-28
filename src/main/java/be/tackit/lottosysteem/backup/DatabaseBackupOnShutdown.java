@@ -30,30 +30,32 @@ public class DatabaseBackupOnShutdown {
     @PreDestroy
     public void onShutdown() {
         try {
-            closeDataSourceIfPossible();
-
-            // 2) Vind het .mv.db bestand uit de datasource URL
+            // 1) Vind het .mv.db bestand om de 'backups' map te bepalen
             Path mvDb = resolveMvDbPathFromH2Url(datasourceUrl);
             if (mvDb == null) {
                 log.warn("Backup skipped: kon mv.db path niet afleiden uit datasource url: {}", datasourceUrl);
                 return;
             }
 
-            if (!Files.exists(mvDb)) {
-                log.warn("Backup skipped: databasebestand bestaat niet: {}", mvDb);
-                return;
-            }
-
-            // 3) Maak backups folder
+            // 2) Maak backups folder
             Path backupsDir = mvDb.getParent().resolve("backups");
             Files.createDirectories(backupsDir);
 
-            // 4) Bepaal maandnaam
+            // 3) Bepaal maandnaam -> backup-YYYY-MM.zip (H2 backup is ZIP standaard)
             String ym = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
-            Path backupFile = backupsDir.resolve("backup-" + ym + ".mv.db");
+            Path backupFile = backupsDir.resolve("backup-" + ym + ".zip");
 
-            // 5) Kopieer (overschrijven binnen dezelfde maand)
-            Files.copy(mvDb, backupFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+            // 4) Voer BACKUP TO command uit via SQL
+            // Dit laat H2 zelf de backup maken, wat locking issues voorkomt
+            log.info("Starting database backup to: {}", backupFile);
+
+            String sqlVal = backupFile.toAbsolutePath().toString().replace('\\', '/');
+            String sql = "BACKUP TO '" + sqlVal + "'";
+
+            try (java.sql.Connection conn = dataSource.getConnection();
+                    java.sql.Statement stmt = conn.createStatement()) {
+                stmt.execute(sql);
+            }
 
             log.info("Database backup OK -> {}", backupFile);
 
@@ -63,32 +65,24 @@ public class DatabaseBackupOnShutdown {
         }
     }
 
-    private void closeDataSourceIfPossible() {
-        try {
-            if (dataSource instanceof HikariDataSource hikari) {
-                log.info("Closing HikariDataSource...");
-                hikari.close();
-            }
-        } catch (Exception e) {
-            log.warn("Kon DataSource niet netjes sluiten: {}", e.getMessage());
-        }
-    }
-
     private Path resolveMvDbPathFromH2Url(String url) throws IOException {
         // verwacht iets als: jdbc:h2:file:C:/path/to/lottosysteem
         // mvdb = C:/path/to/lottosysteem.mv.db
 
-        if (url == null) return null;
+        if (url == null)
+            return null;
 
         String prefix = "jdbc:h2:file:";
         int idx = url.indexOf(prefix);
-        if (idx < 0) return null;
+        if (idx < 0)
+            return null;
 
         String rest = url.substring(idx + prefix.length());
 
         // Knip params weg (na ;)
         int semicolon = rest.indexOf(';');
-        if (semicolon >= 0) rest = rest.substring(0, semicolon);
+        if (semicolon >= 0)
+            rest = rest.substring(0, semicolon);
 
         // H2 laat zowel / als \ toe, wij laten Path het oplossen
         Path base = Paths.get(rest);
