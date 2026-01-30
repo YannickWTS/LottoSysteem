@@ -18,10 +18,13 @@ import java.util.List;
 public class BestellingService {
     private final BestellingRepository bestellingRepository;
     private final GebruikerRepository gebruikerRepository;
+    private final PrintService printService;
 
-    public BestellingService(BestellingRepository bestellingRepository, GebruikerRepository gebruikerRepository) {
+    public BestellingService(BestellingRepository bestellingRepository, GebruikerRepository gebruikerRepository,
+            PrintService printService) {
         this.bestellingRepository = bestellingRepository;
         this.gebruikerRepository = gebruikerRepository;
+        this.printService = printService;
     }
 
     private static final List<String> TOEGESTANE_SPELTYPES = List.of(
@@ -61,12 +64,25 @@ public class BestellingService {
                 gebruiker.getId(),
                 gebruiker.getGebruikersnaam());
 
-        return bestellingRepository.save(bestelling);
+        long newId = bestellingRepository.save(bestelling);
+
+        if (betaald) {
+            try {
+                // We moeten de volledige bestelling ophalen om de klantnaam e.d. te hebben voor
+                // de bon
+                Bestelling savedBestelling = bestellingRepository.findById(newId);
+                printService.printBestelling(savedBestelling);
+            } catch (Exception e) {
+                System.err.println("Kon bon niet afdrukken bij aanmaken: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        return newId;
     }
 
     public void setBetaald(long id, boolean betaald) {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-
 
         // A) via Optional<Long>:
         var bewerkerId = gebruikerRepository.findIdByGebruikersnaam(auth.getName())
@@ -76,8 +92,21 @@ public class BestellingService {
 
         int updated = bestellingRepository.updateBetaald(id, betaald, bewerkerId);
         if (updated == 0) {
-
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Bestelling niet gevonden");
+        }
+
+        // Als er betaald is (= true), dan printen
+        if (betaald) {
+            try {
+                // Haal de volledige bestelling op (inclusief klantgegevens etc.)
+                Bestelling b = bestellingRepository.findById(id);
+                printService.printBestelling(b);
+            } catch (Exception e) {
+                // Log de fout, maar laat de request niet falen (transactioneel gezien apart, of
+                // gewoon 'best effort')
+                System.err.println("Kon bon niet afdrukken: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
     }
 
