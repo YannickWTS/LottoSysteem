@@ -4,14 +4,27 @@ console.log("✅ login.js is geladen");
 // --- Login logica ---
 document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("loginForm");
+
+    // Toggle Password setup
+    const toggleBtn = document.getElementById("togglePassword");
+    const passwordInput = document.getElementById("wachtwoord");
+    if (toggleBtn && passwordInput) {
+        toggleBtn.addEventListener("click", () => {
+            const type = passwordInput.getAttribute("type") === "password" ? "text" : "password";
+            passwordInput.setAttribute("type", type);
+            // Visuele indicatie: blauw (primary) als het zichtbaar is
+            toggleBtn.style.color = (type === "text") ? "var(--primary)" : "";
+        });
+    }
+
     if (!form) return;
 
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         const gebruikersnaam = document.getElementById("gebruikersnaam").value.trim();
-        const wachtwoord    = document.getElementById("wachtwoord").value;
-        const resultaat     = document.getElementById("resultaat");
+        const wachtwoord = document.getElementById("wachtwoord").value;
+        const resultaat = document.getElementById("resultaat");
 
         const loginResponse = await fetch("/auth/login", {
             method: "POST",
