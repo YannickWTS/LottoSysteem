@@ -36,6 +36,10 @@ public class GebruikerController {
         var rol = (nieuweGebruiker.rol() == null || nieuweGebruiker.rol().isBlank())
                 ? "USER" : nieuweGebruiker.rol().toUpperCase();
 
+        if (!rol.equals("ADMIN") && !rol.equals("USER")) {
+            throw new IllegalArgumentException("Ongeldige rol: " + rol + ". Kies USER of ADMIN.");
+        }
+
         var domein = new Gebruiker(
                 0,
                 nieuweGebruiker.gebruikersnaam(),

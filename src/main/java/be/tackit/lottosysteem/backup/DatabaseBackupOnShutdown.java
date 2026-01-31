@@ -1,6 +1,5 @@
 package be.tackit.lottosysteem.backup;
 
-import com.zaxxer.hikari.HikariDataSource;
 import jakarta.annotation.PreDestroy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,10 +57,25 @@ public class DatabaseBackupOnShutdown {
             }
 
             log.info("Database backup OK -> {}", backupFile);
+            System.out.println("BACKUP SUCCESSFUL: " + backupFile);
 
         } catch (Exception e) {
             // Nooit de shutdown breken
             log.error("Database backup FAILED (shutdown gaat verder): {}", e.getMessage(), e);
+            System.err.println("BACKUP FAILED: " + e.getMessage());
+        } finally {
+            // Forceer JVM stop. PrintService kan AWT threads starten die JVM open houden.
+            // We gebruiken een aparte thread en halt(0) om deadlocks in shutdown hooks te
+            // vermijden.
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000); // Geef logs even tijd
+                    System.out.println("Forcing JVM exit...");
+                    Runtime.getRuntime().halt(0);
+                } catch (InterruptedException e) {
+                    // ignore
+                }
+            }).start();
         }
     }
 

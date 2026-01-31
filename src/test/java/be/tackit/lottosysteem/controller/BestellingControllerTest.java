@@ -10,6 +10,8 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.jdbc.JdbcTestUtils;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import be.tackit.lottosysteem.service.PrintService;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,10 @@ public class BestellingControllerTest {
     private final MockMvcTester mockMvcTester;
     private final JdbcClient jdbcClient;
     private final String BESTELLINGEN_TABLE =  "bestelling";
+
+    @MockitoBean
+    @SuppressWarnings("unused")
+    private PrintService printService;
 
     public BestellingControllerTest(MockMvcTester mockMvcTester, JdbcClient jdbcClient) {
         this.mockMvcTester = mockMvcTester;
@@ -46,9 +52,9 @@ public class BestellingControllerTest {
 
     @Test
     void addBestellingVoegtBestellingToe() {
-        jdbcClient.sql("insert into klant(naam, email) values (?, ?)")
-                .param("TestKlant_" + System.nanoTime())
-                .param("test@tack.it")
+        jdbcClient.sql("insert into klant(naam, email) values (:naam, :email)")
+                .param("naam", "TestKlant_" + System.nanoTime())
+                .param("email", "test@tack.it")
                 .update();
 
         long klantId = jdbcClient.sql("select max(id) from klant")

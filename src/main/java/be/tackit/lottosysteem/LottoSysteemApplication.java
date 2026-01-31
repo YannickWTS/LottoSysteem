@@ -15,16 +15,6 @@ public class LottoSysteemApplication {
         Path dbDir = Paths.get(System.getProperty("user.home"), ".lottosysteem");
         Files.createDirectories(dbDir); // zorgt dat map bestaat
 
-        Path dbFile = dbDir.resolve("lottosysteem.mv.db");
-
-        // DB bestaat → NIET aanraken
-        if (Files.exists(dbFile)) {
-            System.setProperty("spring.sql.init.mode", "never");
-        } else {
-            // Eerste installatie
-            System.setProperty("spring.sql.init.mode", "always");
-        }
-
         SpringApplication.run(LottoSysteemApplication.class, args);
     }
 }
