@@ -820,7 +820,7 @@ body.page-klanten #klantenBlok .create-slot {
     position: absolute;
     top: 50%;
     right: 12px;
-    transform: translateY(-50%);
+    transform: translateY(-60%);
     /* Nudged up slightly for visual center */
     background: transparent !important;
     border: none;
@@ -839,7 +839,7 @@ body.page-klanten #klantenBlok .create-slot {
 .password-toggle:hover {
     color: var(--primary);
     filter: none;
-    transform: translateY(-50%) scale(1.1);
+    transform: translateY(-60%) scale(1.1);
     /* Keep the nudge on hover */
 }
 
